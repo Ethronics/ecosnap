@@ -1,0 +1,42 @@
+{
+  "ai": {
+    "input": {
+      "temperature": 27.5,
+      "humidity": 60,
+      "domain": "school"
+    },
+    "output": {
+      "condition": "caution",
+      "confidence": 0.84,
+      "recommended_action": "Open windows or turn on ventilation"
+    }
+  },
+  "backend": {
+    "user": {
+      "user_id": "u123",
+      "name": "first last",
+      "email": "example@email.com",
+      "password": "hashed_password",
+      "preferences": {
+        "default_domain": "agriculture",
+        "language": "en",
+        "alerts_enabled": true
+      },
+      "created_at": "2025-07-14T10:34:45.440417Z"
+    },
+    "sensor_log": {
+      "entry_id": "e872",
+      "device_id": "envobot-42",
+      "timestamp": "2025-07-14T10:34:45.440432Z",
+      "temperature": 29.8,
+      "humidity": 62,
+      "domain": "working_space",
+      "ai_prediction": {
+        "condition": "safe",
+        "confidence": 0.91,
+        "recommended_action": null
+      },
+      "source": "live"
+    }
+  }
+}

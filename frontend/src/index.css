@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Glassmorphism Background System */
+    --background: 240 30% 5%;
+    --foreground: 0 0% 100%;
+
+    /* Glass Effect Variables */
+    --glass-primary: 240 30% 15%;
+    --glass-secondary: 260 40% 20%;
+    --glass-accent: 280 50% 25%;
+
+    /* Domain Theme Colors */
+    --agriculture: 120 60% 50%;
+    --office: 210 80% 55%;
+    --school: 45 90% 60%;
+    --medical: 0 70% 55%;
+    --factory: 20 70% 50%;
+    --lab: 270 70% 60%;
+
+    /* Core Design System */
+    --card: 240 15% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 15% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 240 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 15% 15%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 260 60% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 15% 20%;
+    --input: 240 15% 12%;
+    --ring: 240 80% 60%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 30% 5%;
+    --foreground: 0 0% 100%;
+
+    --card: 240 15% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 15% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 240 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 15% 15%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 260 60% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 15% 20%;
+    --input: 240 15% 12%;
+    --ring: 240 80% 60%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground overflow-x-hidden;
+    background: radial-gradient(
+      ellipse at center,
+      hsl(var(--glass-primary)) 0%,
+      hsl(var(--background)) 100%
+    );
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+  }
+}
+
+/* 
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+  }
+} */
