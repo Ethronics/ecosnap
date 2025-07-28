@@ -81,11 +81,11 @@ export const DomainCards = () => {
     const root = document.documentElement;
     const domainColors = {
       agriculture: "120 60% 50%",
-      office: "210 80% 55%",
+      office: "270 70% 60%",
       school: "45 90% 60%",
       medical: "0 70% 55%",
       factory: "20 70% 50%",
-      lab: "270 70% 60%",
+      lab: "210 80% 55%",
     };
 
     root.style.setProperty(
