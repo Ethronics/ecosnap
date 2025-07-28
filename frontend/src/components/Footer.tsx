@@ -35,19 +35,19 @@ export const Footer = () => {
               </h4>
               <div className="space-y-2">
                 <Link
-                  to="/about"
+                  to="/"
                   className="block text-foreground/70 hover:text-primary transition-colors"
                 >
                   About
                 </Link>
                 <Link
-                  to="/contact"
+                  to="/"
                   className="block text-foreground/70 hover:text-primary transition-colors"
                 >
                   Domains
                 </Link>
                 <Link
-                  to="/privacy"
+                  to="/"
                   className="block text-foreground/70 hover:text-primary transition-colors"
                 >
                   Contact

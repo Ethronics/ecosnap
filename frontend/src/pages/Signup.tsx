@@ -258,7 +258,8 @@ const Signup = () => {
                   <>
                     <User className="h-4 w-4 text-green-400" />
                     <span>
-                      Employee: Basic access to environmental monitoring
+                      Employee: Basic access to environmental dashboard and
+                      alerts.
                     </span>
                   </>
                 )}
@@ -266,7 +267,7 @@ const Signup = () => {
                   <>
                     <Users className="h-4 w-4 text-blue-400" />
                     <span>
-                      Staff: Enhanced access with reporting capabilities
+                      Staff: Enhanced access with monitoring and insights.
                     </span>
                   </>
                 )}
