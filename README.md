@@ -79,7 +79,7 @@ EcoSnap is a comprehensive environmental monitoring system that provides real-ti
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Ethronics/ecosnap.git
    cd EcoSnap
    ```
 
