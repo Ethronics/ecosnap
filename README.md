@@ -64,7 +64,6 @@ EcoSnap is a comprehensive environmental monitoring system that provides real-ti
 - **Mongoose** - MongoDB ODM
 - **JWT** - Authentication
 - **bcrypt** - Password hashing
-- **InfluxDB** - Time-series database for sensor data
 - **Helmet** - Security middleware
 - **CORS** - Cross-origin resource sharing
 
