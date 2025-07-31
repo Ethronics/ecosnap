@@ -13,23 +13,33 @@ import {
   EyeOff,
   User,
   ArrowLeft,
-  Shield,
-  Users,
-  UserCheck,
+  Building,
+  Globe,
+  ChevronDown,
 } from "lucide-react";
 import useAuthStore from "@/stores/authStore";
+import { useDomainStore } from "@/stores/domainStore";
+
+interface Domain {
+  _id: string;
+  name: string;
+  description: string;
+}
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
+    companyName: "",
+    domainId: "",
+    managerName: "",
+    managerEmail: "",
+    managerPassword: "",
     confirmPassword: "",
-    role: "employee",
   });
+  // const [domains, setDomains] = useState<Domain[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // const [isLoadingDomains, setIsLoadingDomains] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signup, error, signupSuccess, resetSignupSuccess } = useAuthStore();
@@ -38,6 +48,12 @@ const Signup = () => {
     useAuthStore.getState().initializeAuth();
   }, []);
 
+  const { domains, getDomains, isLoading: domainLoading } = useDomainStore();
+
+  // Fetch domains from the database
+  useEffect(() => {
+    getDomains();
+  }, [getDomains]);
   // Reset signup success when component mounts
   useEffect(() => {
     resetSignupSuccess();
@@ -46,7 +62,7 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.managerPassword !== formData.confirmPassword) {
       toast({
         title: "Error",
         description: "Passwords do not match.",
@@ -55,13 +71,25 @@ const Signup = () => {
       return;
     }
 
+    if (!formData.domainId) {
+      toast({
+        title: "Error",
+        description: "Please select a domain.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     const signupData = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
+      companyName: formData.companyName,
+      domainId: formData.domainId,
+      managerData: {
+        name: formData.managerName,
+        email: formData.managerEmail,
+        password: formData.managerPassword,
+      },
     };
 
     const result = await signup(signupData);
@@ -70,7 +98,7 @@ const Signup = () => {
       toast({
         title: "Welcome to EcoSnap!",
         description:
-          "Your account has been created successfully. Please log in.",
+          "Your company and manager account have been created successfully. Please log in.",
       });
       navigate("/login");
     } else {
@@ -87,7 +115,7 @@ const Signup = () => {
 
   const handleInputChange =
     (field: keyof typeof formData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
@@ -120,174 +148,170 @@ const Signup = () => {
             </Link>
             <h1 className="text-3xl font-bold text-foreground">Join EcoSnap</h1>
             <p className="text-foreground/70 mt-2">
-              Create your account to get started
+              Create your company and manager account
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleInputChange("name")}
-                  className="pl-10 glass-card border-white/20 text-foreground"
-                  required
-                />
-              </div>
-            </div>
+            {/* Company Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                Company Information
+              </h3>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleInputChange("email")}
-                  className="pl-10 glass-card border-white/20 text-foreground"
-                  required
-                />
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Company Name</Label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="companyName"
+                    type="text"
+                    placeholder="Enter your company name"
+                    value={formData.companyName}
+                    onChange={handleInputChange("companyName")}
+                    className="pl-10 glass-card border-white/20 text-foreground"
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
-                  value={formData.password}
-                  onChange={handleInputChange("password")}
-                  className="pl-10 pr-10 glass-card border-white/20 text-foreground"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange("confirmPassword")}
-                  className="pl-10 pr-10 glass-card border-white/20 text-foreground"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <div className="relative">
-                <UserCheck className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <select
-                  id="role"
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, role: e.target.value }))
-                  }
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent"
-                  required
-                >
-                  <option
-                    value="employee"
-                    className="bg-background text-foreground"
+              <div className="space-y-2">
+                <Label htmlFor="domainId">Domain</Label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <select
+                    id="domainId"
+                    value={formData.domainId}
+                    onChange={handleInputChange("domainId")}
+                    className="w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent appearance-none"
+                    required
+                    disabled={domainLoading}
                   >
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4" />
-                      <span>Employee</span>
-                    </div>
-                  </option>
-                  <option
-                    value="staff"
-                    className="bg-background text-foreground"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4" />
-                      <span>Staff</span>
-                    </div>
-                  </option>
-                  <option
-                    value="manager"
-                    className="bg-background text-foreground"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Shield className="h-4 w-4" />
-                      <span>Manager</span>
-                    </div>
-                  </option>
-                </select>
+                    <option value="" className="bg-background text-foreground">
+                      {domainLoading ? "Loading domains..." : "Select a domain"}
+                    </option>
+                    {domains.map((domain) => (
+                      <option
+                        key={domain._id}
+                        value={domain._id}
+                        className="bg-background text-foreground"
+                      >
+                        {domain.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 h-5 w-5 text-muted-foreground pointer-events-none" />
+                </div>
+                {formData.domainId && (
+                  <p className="text-xs text-foreground/60 mt-1">
+                    {
+                      domains.find((d) => d._id === formData.domainId)
+                        ?.description
+                    }
+                  </p>
+                )}
               </div>
-              <div className="flex items-center space-x-2 mt-2 text-xs text-foreground/60">
-                {formData.role === "employee" && (
-                  <>
-                    <User className="h-4 w-4 text-green-400" />
-                    <span>
-                      Employee: Basic access to environmental dashboard and
-                      alerts.
-                    </span>
-                  </>
-                )}
-                {formData.role === "staff" && (
-                  <>
-                    <Users className="h-4 w-4 text-blue-400" />
-                    <span>
-                      Staff: Enhanced access with monitoring and insights.
-                    </span>
-                  </>
-                )}
-                {formData.role === "manager" && (
-                  <>
-                    <Shield className="h-4 w-4 text-amber-400" />
-                    <span>
-                      Manager: Full access with administrative privileges
-                    </span>
-                  </>
-                )}
+            </div>
+
+            {/* Manager Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                Manager Details
+              </h3>
+
+              <div className="space-y-2">
+                <Label htmlFor="managerName">Manager Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="managerName"
+                    type="text"
+                    placeholder="Enter manager's full name"
+                    value={formData.managerName}
+                    onChange={handleInputChange("managerName")}
+                    className="pl-10 glass-card border-white/20 text-foreground"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="managerEmail">Manager Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="managerEmail"
+                    type="email"
+                    placeholder="Enter manager's email"
+                    value={formData.managerEmail}
+                    onChange={handleInputChange("managerEmail")}
+                    className="pl-10 glass-card border-white/20 text-foreground"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="managerPassword">Manager Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="managerPassword"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password for manager"
+                    value={formData.managerPassword}
+                    onChange={handleInputChange("managerPassword")}
+                    className="pl-10 pr-10 glass-card border-white/20 text-foreground"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm manager's password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange("confirmPassword")}
+                    className="pl-10 pr-10 glass-card border-white/20 text-foreground"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
             <Button
               type="submit"
               className="w-full bg-primary/80 hover:bg-primary text-white backdrop-blur-sm py-6 text-lg"
-              disabled={isLoading}
+              disabled={isLoading || domainLoading}
             >
-              {isLoading ? "Creating account..." : "Create Account"}
+              {isLoading ? "Creating company..." : "Create Company & Manager"}
             </Button>
           </form>
 

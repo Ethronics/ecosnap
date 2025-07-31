@@ -16,10 +16,12 @@ import NotFound from "./pages/NotFound";
 import ManagerDashboard from "./pages/dashboard/ManagerDashboard";
 import StaffDashboard from "./pages/dashboard/StaffDashboard";
 import EmployeeDashboard from "./pages/dashboard/EmployeeDashboard";
+import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import Insights from "./pages/Insights";
 import CustomizeSettings from "./pages/settings/CustomizeSettings";
 import UsersManagement from "./pages/dashboard/UsersManagement";
 import EmployeesManagement from "./pages/dashboard/EmployeesManagement";
+import CompaniesManagement from "./pages/dashboard/CompaniesManagement";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +43,7 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+            <Route path="/dashboard/admin" element={<AdminDashboard />} />
             <Route path="/dashboard/manager" element={<ManagerDashboard />} />
             <Route path="/dashboard/staff" element={<StaffDashboard />} />
             <Route path="/dashboard/employee" element={<EmployeeDashboard />} />
@@ -48,6 +51,10 @@ const App = () => {
             <Route
               path="/dashboard/employees"
               element={<EmployeesManagement />}
+            />
+            <Route
+              path="/dashboard/companies"
+              element={<CompaniesManagement />}
             />
             <Route path="/insights" element={<Insights />} />
             <Route path="/settings/customize" element={<CustomizeSettings />} />

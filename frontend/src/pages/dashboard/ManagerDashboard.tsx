@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { RoleNavigation } from "@/components/RoleNavigation";
 import { useToast } from "@/hooks/use-toast";
+import useAuthStore from "@/stores/authStore";
+import { useCompanyStore } from "@/stores/companyStore";
 import {
   Upload,
   Link as LinkIcon,
@@ -17,17 +19,46 @@ import {
   Activity,
   Thermometer,
   Droplets,
+  Users,
+  Building,
+  Globe,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+interface DashboardData {
+  condition: string;
+  temperature: number;
+  humidity: number;
+  domain: string;
+  recommendations: string[];
+}
 
 const ManagerDashboard = () => {
   const [apiEndpoint, setApiEndpoint] = useState("");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [selectedDomain, setSelectedDomain] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Auth and Company stores
+  const { user } = useAuthStore();
+  const {
+    company,
+    isLoading: companyLoading,
+    getCompanyByManagerId,
+  } = useCompanyStore();
+
+  // Fetch company data when component mounts
+  useEffect(() => {
+    if (user?.id) {
+      getCompanyByManagerId(user.id);
+    }
+  }, [user?.id, getCompanyByManagerId]);
 
   const handleConnect = async () => {
     if (!apiEndpoint) return;
@@ -40,7 +71,10 @@ const ManagerDashboard = () => {
       condition: "Safe",
       temperature: 24.5,
       humidity: 65,
-      domain: selectedDomain || "Office Environment",
+      domain:
+        selectedDomain ||
+        company?.domain.reference.name ||
+        "Office Environment",
       recommendations: [
         "Temperature levels are optimal",
         "Humidity within acceptable range",
@@ -71,7 +105,10 @@ const ManagerDashboard = () => {
       condition: "Moderate Risk",
       temperature: 28.3,
       humidity: 78,
-      domain: selectedDomain || "Agricultural Field",
+      domain:
+        selectedDomain ||
+        company?.domain.reference.name ||
+        "Agricultural Field",
       recommendations: [
         "Temperature slightly elevated",
         "Consider increasing ventilation",
@@ -88,7 +125,8 @@ const ManagerDashboard = () => {
   };
 
   const getDomainGlow = () => {
-    switch (selectedDomain) {
+    const domainName = company?.domain.reference.name || selectedDomain;
+    switch (domainName) {
       case "Agriculture":
         return "bg-gradient-to-tr from-green-900/40 via-green-600/10 to-green-900/40 shadow-green-500/10";
       case "Office":
@@ -106,8 +144,6 @@ const ManagerDashboard = () => {
     }
   };
 
-  const navigate = useNavigate();
-
   return (
     <div
       className={`min-h-screen transition-all duration-500 ease-in-out ${getDomainGlow()}`}
@@ -115,55 +151,99 @@ const ManagerDashboard = () => {
       <RoleNavigation />
       <div className="pt-32 px-4 pb-8">
         <div className="max-w-6xl mx-auto space-y-8">
+          {/* Company Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="text-center"
           >
-            <h1 className="text-4xl font-bold text-center mb-2 bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              Manager Dashboard
-            </h1>
-            <p className="text-center text-foreground/70 mb-8">
+            {companyLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-white/10 rounded mb-2"></div>
+                <div className="h-6 bg-white/10 rounded w-64 mx-auto"></div>
+              </div>
+            ) : company ? (
+              <>
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <Building className="h-8 w-8 text-amber-400" />
+                  <h1 className="text-3xl font-bold text-amber-400">
+                    {company.companyName}
+                  </h1>
+                </div>
+                <div className="flex items-center justify-center space-x-2 text-foreground/70">
+                  <Globe className="h-4 w-4" />
+                  <span>{company.domain.reference.name}</span>
+                  <span>•</span>
+                  <span>Managed by {company.manager.reference.name}</span>
+                </div>
+              </>
+            ) : (
+              <h1 className="text-3xl font-bold text-amber-400">
+                Manager Dashboard
+              </h1>
+            )}
+            <p className="text-center text-foreground/70 mt-4">
               Full access to environmental monitoring and configuration
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full"
-          >
-            <div className="glass-card p-4 rounded-xl mb-4 max-w-xl">
-              <label className="block text-sm font-medium mb-2 text-white">
-                Select Domain
-              </label>
-              <select
-                value={selectedDomain}
-                onChange={(e) => setSelectedDomain(e.target.value)}
-                className="w-full bg-black/30 text-white border border-white/30 rounded-md px-4 py-2 backdrop-blur-lg appearance-none hover:bg-black/50 focus:outline-none"
-              >
-                <option value="" disabled>
-                  Select a domain
-                </option>
-                <option value="Agriculture">Agriculture</option>
-                <option value="Office">Office</option>
-                <option value="School">School</option>
-                <option value="Medical">Medical</option>
-                <option value="Factory">Factory</option>
-                <option value="Lab">Lab</option>
-              </select>
-            </div>
-          </motion.div>
+          {/* Company Stats */}
+          {company && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="grid md:grid-cols-3 gap-6"
+            >
+              <Card className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Total Employees</h3>
+                  <Users className="h-6 w-6 text-blue-400" />
+                </div>
+                <p className="text-3xl font-bold text-blue-400">
+                  {company.employees.length}
+                </p>
+                <p className="text-foreground/70 mt-2">Active team members</p>
+              </Card>
 
+              <Card className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Domain</h3>
+                  <Globe className="h-6 w-6 text-green-400" />
+                </div>
+                <p className="text-xl font-bold text-green-400">
+                  {company.domain.reference.name}
+                </p>
+                <p className="text-foreground/70 mt-2">
+                  {company.domain.reference.description}
+                </p>
+              </Card>
+
+              <Card className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Manager</h3>
+                  <UserPlus className="h-6 w-6 text-purple-400" />
+                </div>
+                <p className="text-xl font-bold text-purple-400">
+                  {company.manager.reference.name}
+                </p>
+                <p className="text-foreground/70 mt-2">
+                  {company.manager.reference.email}
+                </p>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Data Input Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="glass-card p-6 rounded-2xl"
           >
             <h2 className="text-xl font-semibold mb-4 text-foreground">
-              Data Input
+              Data Input & Monitoring
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
@@ -210,12 +290,44 @@ const ManagerDashboard = () => {
             )}
           </motion.div>
 
+          {/* Employee List */}
+          {company && company.employees.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="glass-card p-6 rounded-2xl"
+            >
+              <h3 className="text-xl font-semibold mb-4">Team Members</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {company.employees.map((employee) => (
+                  <Card key={employee._id} className="glass-card p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {employee.name}
+                        </p>
+                        <p className="text-sm text-foreground/70">
+                          {employee.email}
+                        </p>
+                        <span className="inline-block px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded-full mt-1">
+                          {employee.role}
+                        </span>
+                      </div>
+                      <UserMinus className="h-5 w-5 text-red-400 cursor-pointer hover:text-red-300" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Results Section */}
           {data && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
               className="grid md:grid-cols-3 gap-6"
             >
               <Card className="glass-card p-6">
@@ -292,7 +404,7 @@ const ManagerDashboard = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
               className="glass-card p-6 rounded-2xl"
             >
               <h3 className="text-xl font-semibold mb-4">AI Recommendations</h3>

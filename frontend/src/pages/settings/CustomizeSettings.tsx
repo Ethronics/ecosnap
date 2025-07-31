@@ -5,13 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { RoleNavigation } from "@/components/RoleNavigation";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
@@ -24,25 +18,19 @@ import {
   Save,
   RotateCcw,
   Globe,
-  Plus,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 import { useDomainStore } from "@/stores/domainStore";
 import { useConfigStore } from "@/stores/configStore";
+import { useCompanyStore } from "@/stores/companyStore";
+import useAuthStore from "@/stores/authStore";
 
 const CustomizeSettings = () => {
   const { toast } = useToast();
-  const {
-    domains,
-    createDomain,
-    getDomains,
-    isLoading: domainLoading,
-  } = useDomainStore();
+  const { user } = useAuthStore();
+  const { company, getCompanyByManagerId } = useCompanyStore();
+  const { domains, getDomains, isLoading: domainLoading } = useDomainStore();
   const { updateConfig, isLoading: configLoading } = useConfigStore();
 
-  const [domainName, setDomainName] = useState("");
-  const [domainDescription, setDomainDescription] = useState("");
   const [selectedDomain, setSelectedDomain] = useState("");
   const [settings, setSettings] = useState({
     threshold_temp: 22,
@@ -108,43 +96,20 @@ const CustomizeSettings = () => {
     });
   };
 
-  const [open, setOpen] = useState(false);
-
-  const handleAddDomain = async () => {
-    if (!domainName.trim() || !domainDescription.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in both domain name and description.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const success = await createDomain(domainName, domainDescription);
-
-    if (success) {
-      toast({
-        title: "Domain Created",
-        description: "New domain has been created successfully.",
-      });
-      setDomainName("");
-      setDomainDescription("");
-      setOpen(false);
-      // Refresh domains list
-      await getDomains();
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to create domain. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Load domains on component mount
+  // Load domains and company data on component mount
   useEffect(() => {
     getDomains();
-  }, [getDomains]);
+    if (user?.id) {
+      getCompanyByManagerId(user.id);
+    }
+  }, [getDomains, user?.id, getCompanyByManagerId]);
+
+  // Set the company's domain when company data is loaded
+  useEffect(() => {
+    if (company?.domain?.reference?._id) {
+      setSelectedDomain(company.domain.reference._id);
+    }
+  }, [company]);
 
   const handleDomainChange = (domainId: string) => {
     const domain = domains.find((d) => d._id === domainId);
@@ -174,71 +139,7 @@ const CustomizeSettings = () => {
               </p>
             </motion.div>
 
-            {/* add domain */}
-            <div className="relative w-full max-w-md mx-auto mb-8">
-              <button
-                onClick={() => setOpen(!open)}
-                className="flex items-center justify-between w-full px-6 py-3 rounded-xl backdrop-blur-md bg-white/10 text-white font-semibold border border-white/10 shadow-md hover:bg-white/20 transition"
-              >
-                <div className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-blue-300" />
-                  Add New Domain
-                </div>
-                {open ? (
-                  <ChevronUp className="h-5 w-5 text-white" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-white" />
-                )}
-              </button>
-
-              <AnimatePresence>
-                {open && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-3"
-                  >
-                    <Card className="glass-card p-6 shadow-xl backdrop-blur-lg bg-white/10 border border-white/10">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <Globe className="h-6 w-6 text-blue-400" />
-                        <h2 className="text-xl font-semibold text-white">
-                          Add Domain
-                        </h2>
-                      </div>
-
-                      <div className="space-y-3">
-                        <Input
-                          type="text"
-                          placeholder="Enter domain name"
-                          value={domainName}
-                          onChange={(e) => setDomainName(e.target.value)}
-                          className="bg-white/10 text-white border-white/20"
-                        />
-                        <Input
-                          type="text"
-                          placeholder="Enter domain description"
-                          value={domainDescription}
-                          onChange={(e) => setDomainDescription(e.target.value)}
-                          className="bg-white/10 text-white border-white/20"
-                        />
-                      </div>
-
-                      <Button
-                        onClick={handleAddDomain}
-                        className="mt-4 bg-green-500/80 hover:bg-green-500 text-white px-6 py-2 w-full"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Domain
-                      </Button>
-                    </Card>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Domain Selector */}
+            {/* Company Domain Display */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -247,34 +148,20 @@ const CustomizeSettings = () => {
               <Card className="glass-card p-6">
                 <div className="flex items-center space-x-3 mb-6">
                   <Globe className="h-6 w-6 text-blue-400" />
-                  <h2 className="text-xl font-semibold">Domain Selection</h2>
+                  <h2 className="text-xl font-semibold">Company Domain</h2>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="domain-select">Select Domain</Label>
-                  <Select
-                    value={selectedDomain}
-                    onValueChange={(value) => {
-                      setSelectedDomain(value);
-                      handleDomainChange(value);
-                    }}
-                  >
-                    <SelectTrigger className="glass-card border-white/20">
-                      <SelectValue placeholder="Choose a domain..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {domains.map((domain) => (
-                        <SelectItem key={domain._id} value={domain._id}>
-                          <div>
-                            <div className="font-medium">{domain.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {domain.description}
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Current Domain</Label>
+                  <div className="p-3 rounded-lg bg-white/10 border border-white/20">
+                    <div className="font-medium text-white">
+                      {company?.domain?.reference?.name || "Loading..."}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {company?.domain?.reference?.description ||
+                        "Domain description"}
+                    </div>
+                  </div>
                 </div>
               </Card>
             </motion.div>

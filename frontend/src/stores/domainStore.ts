@@ -27,7 +27,7 @@ export const useDomainStore = create<DomainStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("envosense_token");
+      const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_URL}/api/domain/create`,
         { name, description },
@@ -61,12 +61,7 @@ export const useDomainStore = create<DomainStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("envosense_token");
-      const response = await axios.get(`${API_URL}/api/domain/all`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(`${API_URL}/api/domain/all`);
 
       set({ domains: response.data.data, isLoading: false });
     } catch (error: any) {

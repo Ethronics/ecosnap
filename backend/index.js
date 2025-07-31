@@ -28,6 +28,7 @@ app.use("/api/auth", require("./Auth/Auth"));
 app.use("/api/users", require("./routes/user.routes.js"));
 app.use("/api/domain", require("./routes/domain.routes.js"));
 app.use("/api/config", require("./routes/config.routes.js"));
+app.use("/api/companies", require("./routes/company.route.js"));
 
 const connectDB = require("./config/db");
 connectDB();

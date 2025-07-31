@@ -24,10 +24,13 @@ interface AuthState {
   testConnection: () => Promise<boolean>;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (data: {
-    name: string;
-    email: string;
-    password: string;
-    role: string;
+    companyName: string;
+    domainId: string;
+    managerData: {
+      name: string;
+      email: string;
+      password: string;
+    };
   }) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
 }
@@ -115,7 +118,10 @@ const useAuthStore = create<AuthState>((set) => ({
 
   signup: async (data) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/signup`, data);
+      const response = await axios.post(
+        `${API_URL}/api/companies/create`,
+        data
+      );
 
       if (response.status === 201) {
         set({
@@ -124,14 +130,14 @@ const useAuthStore = create<AuthState>((set) => ({
         });
         return { success: true, message: response.data.message };
       } else {
-        set({ error: "Signup failed" });
-        return { success: false, message: "Signup failed" };
+        set({ error: "Company creation failed" });
+        return { success: false, message: "Company creation failed" };
       }
     } catch (e: unknown) {
       const message =
         axios.isAxiosError(e) && e.response?.data?.message
           ? e.response.data.message
-          : "Signup failed";
+          : "Company creation failed";
       set({ error: message });
       return { success: false, message };
     }

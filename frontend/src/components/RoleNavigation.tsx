@@ -27,6 +27,8 @@ export const RoleNavigation = () => {
 
   const getRoleIcon = () => {
     switch (user.role) {
+      case "admin":
+        return <Shield className="h-5 w-5" />;
       case "manager":
         return <Shield className="h-5 w-5" />;
       case "staff":
@@ -38,6 +40,8 @@ export const RoleNavigation = () => {
 
   const getRoleColor = () => {
     switch (user.role) {
+      case "admin":
+        return "from-purple-400 to-purple-600";
       case "manager":
         return "from-amber-400 to-orange-500";
       case "staff":
@@ -56,7 +60,13 @@ export const RoleNavigation = () => {
       },
     ];
 
-    if (user.role === "manager") {
+    if (user.role === "admin") {
+      baseItems.push(
+        // { name: "Users", path: "/dashboard/users", icon: Users },
+        { name: "Companies", path: "/dashboard/companies", icon: Users },
+        { name: "Settings", path: "/settings/customize", icon: Settings }
+      );
+    } else if (user.role === "manager") {
       baseItems.push(
         { name: "Insights", path: "/insights", icon: Eye },
         { name: "Settings", path: "/settings/customize", icon: Settings },
@@ -64,8 +74,8 @@ export const RoleNavigation = () => {
       );
     } else if (user.role === "staff") {
       baseItems.push(
-        { name: "Insights", path: "/insights", icon: Eye }
-        // { name: "Employees", path: "/dashboard/employees", icon: Users }
+        { name: "Insights", path: "/insights", icon: Eye },
+        { name: "Employees", path: "/dashboard/employees", icon: Users }
       );
     }
 
