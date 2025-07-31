@@ -64,7 +64,6 @@ EcoSnap is a comprehensive environmental monitoring system that provides real-ti
 - **Mongoose** - MongoDB ODM
 - **JWT** - Authentication
 - **bcrypt** - Password hashing
-- **InfluxDB** - Time-series database for sensor data
 - **Helmet** - Security middleware
 - **CORS** - Cross-origin resource sharing
 
@@ -80,7 +79,7 @@ EcoSnap is a comprehensive environmental monitoring system that provides real-ti
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Ethronics/ecosnap.git
    cd EcoSnap
    ```
 
