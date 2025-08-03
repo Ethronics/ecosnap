@@ -6,12 +6,13 @@ const bcrypt = require("bcrypt");
 // Create a new company
 const createCompany = async (req, res) => {
   try {
-    const { companyName, managerData, domainId, domains } = req.body;
+    const { companyName, managerData, domainId, domains, planId } = req.body;
 
     // Validate required fields
-    if (!companyName || !managerData || !domainId) {
+    if (!companyName || !managerData || !domainId || !planId) {
       return res.status(400).json({
-        message: "Company name, manager data, and domain ID are required",
+        message:
+          "Company name, manager data, domain ID, and plan ID are required",
       });
     }
 
@@ -56,6 +57,17 @@ const createCompany = async (req, res) => {
       });
     }
 
+    // Verify plan exists
+    const Plan = require("../models/Plan");
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      // Clean up the created manager if plan doesn't exist
+      await User.findByIdAndDelete(savedManager._id);
+      return res.status(400).json({
+        message: "Plan not found",
+      });
+    }
+
     // Create the company
     const company = new Company({
       companyName,
@@ -66,7 +78,14 @@ const createCompany = async (req, res) => {
       domain: {
         reference: domainId,
       },
-      domains: domains || [],
+      domains: [
+        {
+          domainId: domainId,
+          place: domain.name,
+        },
+        ...(domains || []),
+      ],
+      plan: planId,
     });
 
     const savedCompany = await company.save();
@@ -74,7 +93,11 @@ const createCompany = async (req, res) => {
     // Populate the references for response
     const populatedCompany = await Company.findById(savedCompany._id)
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description");
+      .populate("domain.reference", "name description")
+      .populate(
+        "plan",
+        "name price currency period description features limits isPopular"
+      );
 
     res.status(201).json({
       message: "Company created successfully",
@@ -94,7 +117,11 @@ const getAllCompanies = async (req, res) => {
   try {
     const companies = await Company.find({})
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description");
+      .populate("domain.reference", "name description")
+      .populate(
+        "plan",
+        "name price currency period description features limits isPopular"
+      );
 
     res.status(200).json({
       message: "Companies fetched successfully",
@@ -281,6 +308,72 @@ const removeEmployee = async (req, res) => {
   }
 };
 
+// Add domain to company
+const addDomain = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const { domainId, placeName } = req.body;
+
+    if (!domainId || !placeName) {
+      return res.status(400).json({
+        message: "Domain ID and place name are required",
+      });
+    }
+
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found",
+      });
+    }
+
+    // Verify domain exists
+    const domain = await Domain.findById(domainId);
+    if (!domain) {
+      return res.status(404).json({
+        message: "Domain not found",
+      });
+    }
+
+    // Check if domain already exists in company's domains array
+    const existingDomain = company.domains.find(
+      (d) => d.domainId.toString() === domainId
+    );
+    if (existingDomain) {
+      return res.status(400).json({
+        message: "Domain already exists in this company",
+      });
+    }
+
+    // Add domain to company's domains array
+    company.domains.push({
+      domainId: domainId,
+      place: placeName,
+    });
+
+    await company.save();
+
+    const updatedCompany = await Company.findById(companyId)
+      .populate("manager.reference", "name email role")
+      .populate("domain.reference", "name description")
+      .populate(
+        "plan",
+        "name price currency period description features limits isPopular"
+      );
+
+    res.status(200).json({
+      message: "Domain added to company successfully",
+      data: updatedCompany,
+    });
+  } catch (error) {
+    console.error("Error adding domain:", error);
+    res.status(500).json({
+      message: "Failed to add domain",
+      error: error.message,
+    });
+  }
+};
+
 const companyControllers = {
   createCompany,
   getAllCompanies,
@@ -289,6 +382,7 @@ const companyControllers = {
   deleteCompany,
   addEmployee,
   removeEmployee,
+  addDomain,
 };
 
 module.exports = companyControllers;

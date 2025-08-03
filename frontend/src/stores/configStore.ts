@@ -42,7 +42,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("ecosnap_token");
       const response = await axios.put(
         `${API_URL}/api/config/update`,
         configData,
@@ -79,7 +79,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("ecosnap_token");
       const response = await axios.get(`${API_URL}/api/config/update`, {
         headers: {
           Authorization: `Bearer ${token}`,

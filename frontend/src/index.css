@@ -151,6 +151,14 @@ All colors MUST be HSL.
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
   }
+
+  .animate-glare {
+    animation: glare 8s ease-in-out infinite;
+  }
+
+  .animate-card-glare {
+    animation: card-glare 4s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -169,6 +177,24 @@ All colors MUST be HSL.
   }
   to {
     box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+  }
+}
+
+@keyframes glare {
+  0% {
+    transform: translateX(-100%) translateY(-100%);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%);
+  }
+}
+
+@keyframes card-glare {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 200%;
   }
 }
 

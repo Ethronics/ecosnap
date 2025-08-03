@@ -22,6 +22,7 @@ import CustomizeSettings from "./pages/settings/CustomizeSettings";
 import UsersManagement from "./pages/dashboard/UsersManagement";
 import EmployeesManagement from "./pages/dashboard/EmployeesManagement";
 import CompaniesManagement from "./pages/dashboard/CompaniesManagement";
+import { Payment } from "./pages/Payment";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => {
             <Route path="/settings/customize" element={<CustomizeSettings />} />
             <Route path="/history" element={<History />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/payment" element={<Payment />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

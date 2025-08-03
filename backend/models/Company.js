@@ -17,7 +17,20 @@ const companySchema = new mongoose.Schema({
       required: true,
     },
   },
-  domains: { type: Array, required: true },
+  domains: [
+    {
+      domainId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Domain",
+        required: true,
+      },
+      place: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
+  plan: { type: mongoose.Schema.Types.ObjectId, ref: "Plan", required: true },
   created_at: { type: Date, default: Date.now },
 });
 

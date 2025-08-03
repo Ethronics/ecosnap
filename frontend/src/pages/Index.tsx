@@ -1,8 +1,11 @@
-import { Navigation } from '@/components/Navigation';
-import { Hero } from '@/components/Hero';
-import { DomainCards } from '@/components/DomainCards';
-import { Features } from '@/components/Features';
-import { Footer } from '@/components/Footer';
+import { Navigation } from "@/components/Navigation";
+import { Hero } from "@/components/Hero";
+import { DomainCards } from "@/components/DomainCards";
+import { Features } from "@/components/Features";
+import { Testimonials } from "@/components/Testimonials";
+import { DashboardPreview } from "@/components/DashboardPreview";
+import { Pricing } from "@/components/Pricing";
+import { Footer } from "@/components/Footer";
 
 const Index = () => {
   return (
@@ -11,6 +14,9 @@ const Index = () => {
       <Hero />
       <DomainCards />
       <Features />
+      <Pricing />
+      <DashboardPreview />
+      <Testimonials />
       <Footer />
     </div>
   );

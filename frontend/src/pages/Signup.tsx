@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,9 +16,13 @@ import {
   Building,
   Globe,
   ChevronDown,
+  Crown,
+  Zap,
+  Star,
 } from "lucide-react";
 import useAuthStore from "@/stores/authStore";
 import { useDomainStore } from "@/stores/domainStore";
+import { usePlanStore } from "@/stores/planStore";
 
 interface Domain {
   _id: string;
@@ -27,22 +31,25 @@ interface Domain {
 }
 
 const Signup = () => {
+  const [searchParams] = useSearchParams();
+  const selectedPlan = searchParams.get("plan");
+
   const [formData, setFormData] = useState({
     companyName: "",
     domainId: "",
+    selectedPlanId: "",
     managerName: "",
     managerEmail: "",
     managerPassword: "",
     confirmPassword: "",
   });
-  // const [domains, setDomains] = useState<Domain[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // const [isLoadingDomains, setIsLoadingDomains] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signup, error, signupSuccess, resetSignupSuccess } = useAuthStore();
+  const { plans, getPlans, isLoading: plansLoading } = usePlanStore();
 
   useEffect(() => {
     useAuthStore.getState().initializeAuth();
@@ -50,10 +57,12 @@ const Signup = () => {
 
   const { domains, getDomains, isLoading: domainLoading } = useDomainStore();
 
-  // Fetch domains from the database
+  // Fetch domains and plans from the database
   useEffect(() => {
     getDomains();
-  }, [getDomains]);
+    getPlans();
+  }, [getDomains, getPlans]);
+
   // Reset signup success when component mounts
   useEffect(() => {
     resetSignupSuccess();
@@ -80,11 +89,33 @@ const Signup = () => {
       return;
     }
 
+    if (!selectedPlan && !formData.selectedPlanId) {
+      toast({
+        title: "Error",
+        description: "Please select a plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const planId = selectedPlan
+      ? plans.find((p) => p.name.toLowerCase() === selectedPlan)?._id
+      : formData.selectedPlanId;
+    if (!planId) {
+      toast({
+        title: "Error",
+        description: "Invalid plan selected.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     const signupData = {
       companyName: formData.companyName,
       domainId: formData.domainId,
+      planId: planId,
       managerData: {
         name: formData.managerName,
         email: formData.managerEmail,
@@ -98,9 +129,16 @@ const Signup = () => {
       toast({
         title: "Welcome to EcoSnap!",
         description:
-          "Your company and manager account have been created successfully. Please log in.",
+          "Your company and manager account have been created successfully. Please complete your payment to activate your account.",
       });
-      navigate("/login");
+      // Redirect to payment page with the selected plan
+      const planToUse =
+        selectedPlan ||
+        plans
+          .find((p) => p._id === formData.selectedPlanId)
+          ?.name.toLowerCase() ||
+        "free";
+      navigate(`/payment?plan=${planToUse}`);
     } else {
       toast({
         title: "Signup failed",
@@ -212,6 +250,137 @@ const Signup = () => {
                 )}
               </div>
             </div>
+
+            {/* Plan Selection or Display */}
+            {selectedPlan ? (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                  Selected Plan
+                </h3>
+                {plansLoading ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-foreground/60 mt-2">
+                      Loading plan details...
+                    </p>
+                  </div>
+                ) : (
+                  (() => {
+                    const plan = plans.find(
+                      (p) => p.name.toLowerCase() === selectedPlan
+                    );
+                    if (!plan) return null;
+
+                    const getPlanIcon = () => {
+                      switch (plan.name) {
+                        case "Free":
+                          return Star;
+                        case "Pro":
+                          return Zap;
+                        case "Premium":
+                          return Crown;
+                        default:
+                          return Star;
+                      }
+                    };
+                    const PlanIcon = getPlanIcon();
+
+                    return (
+                      <div className="p-4 rounded-lg border-2 border-primary bg-primary/10">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <PlanIcon className="h-5 w-5 text-primary" />
+                          <h4 className="font-semibold text-foreground">
+                            {plan.name}
+                          </h4>
+                        </div>
+                        <div className="text-2xl font-bold text-foreground mb-2">
+                          {plan.price.toLocaleString()} {plan.currency}
+                          <span className="text-sm text-foreground/60">
+                            /{plan.period}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground/70">
+                          {plan.description}
+                        </p>
+                      </div>
+                    );
+                  })()
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                  Choose Your Plan
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {plansLoading ? (
+                    <div className="col-span-3 text-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                      <p className="text-foreground/60 mt-2">
+                        Loading plans...
+                      </p>
+                    </div>
+                  ) : (
+                    plans.map((plan) => {
+                      const getPlanIcon = () => {
+                        switch (plan.name) {
+                          case "Free":
+                            return Star;
+                          case "Pro":
+                            return Zap;
+                          case "Premium":
+                            return Crown;
+                          default:
+                            return Star;
+                        }
+                      };
+                      const PlanIcon = getPlanIcon();
+
+                      return (
+                        <div
+                          key={plan._id}
+                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                            formData.selectedPlanId === plan._id
+                              ? "border-primary bg-primary/10"
+                              : "border-white/20 hover:border-primary/30"
+                          }`}
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              selectedPlanId: plan._id,
+                            }))
+                          }
+                        >
+                          <div className="flex items-center space-x-3 mb-3">
+                            <PlanIcon className="h-5 w-5 text-primary" />
+                            <h4 className="font-semibold text-foreground">
+                              {plan.name}
+                            </h4>
+                          </div>
+                          <div className="text-2xl font-bold text-foreground mb-2">
+                            {plan.price.toLocaleString()} {plan.currency}
+                            <span className="text-sm text-foreground/60">
+                              /{plan.period}
+                            </span>
+                          </div>
+                          <p className="text-sm text-foreground/70 mb-3">
+                            {plan.description}
+                          </p>
+                          <ul className="text-xs text-foreground/60 space-y-1">
+                            {plan.features.slice(0, 3).map((feature, index) => (
+                              <li key={index} className="flex items-center">
+                                <span className="w-1 h-1 bg-green-400 rounded-full mr-2"></span>
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Manager Information */}
             <div className="space-y-4">

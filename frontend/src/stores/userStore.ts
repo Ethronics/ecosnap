@@ -51,7 +51,7 @@ export const useUserStore = create<UserStore>((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("ecosnap_token");
       const response = await axios.post(
         `${API_URL}/api/users/create`,
         userData,

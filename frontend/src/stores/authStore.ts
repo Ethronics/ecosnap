@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  plan?: string;
 }
 
 interface AuthState {
@@ -26,6 +27,7 @@ interface AuthState {
   signup: (data: {
     companyName: string;
     domainId: string;
+    planId: string;
     managerData: {
       name: string;
       email: string;
@@ -44,8 +46,8 @@ const useAuthStore = create<AuthState>((set) => ({
 
   initializeAuth: () => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      const user = localStorage.getItem("user");
+      const token = localStorage.getItem("ecosnap_token");
+      const user = localStorage.getItem("ecosnap_user");
 
       if (token && user) {
         try {
@@ -58,8 +60,8 @@ const useAuthStore = create<AuthState>((set) => ({
           console.log("Auth initialized from localStorage:", userData);
         } catch (error) {
           console.error("Error parsing user data from localStorage:", error);
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
+          localStorage.removeItem("ecosnap_token");
+          localStorage.removeItem("ecosnap_user");
         }
       }
     }
@@ -92,8 +94,8 @@ const useAuthStore = create<AuthState>((set) => ({
       if (response.status === 200) {
         const { token, user } = response.data;
         if (typeof window !== "undefined") {
-          localStorage.setItem("token", token);
-          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("ecosnap_token", token);
+          localStorage.setItem("ecosnap_user", JSON.stringify(user));
         }
         set({
           user,
@@ -145,8 +147,8 @@ const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      localStorage.removeItem("ecosnap_token");
+      localStorage.removeItem("ecosnap_user");
     }
     set({
       user: null,

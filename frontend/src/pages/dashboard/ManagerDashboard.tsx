@@ -8,6 +8,7 @@ import { RoleNavigation } from "@/components/RoleNavigation";
 import { useToast } from "@/hooks/use-toast";
 import useAuthStore from "@/stores/authStore";
 import { useCompanyStore } from "@/stores/companyStore";
+import { usePlanStore } from "@/stores/planStore";
 import {
   Upload,
   Link as LinkIcon,
@@ -24,6 +25,9 @@ import {
   Globe,
   UserPlus,
   UserMinus,
+  Database,
+  Shield,
+  Zap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -35,6 +39,28 @@ interface DashboardData {
   recommendations: string[];
 }
 
+interface Plan {
+  _id: string;
+  name: string;
+  price: number;
+  currency: string;
+  period: string;
+  description: string;
+  features: string[];
+  limits: {
+    domains: number;
+    employees: number;
+    requestsPerDay: number;
+    dataRetention: number;
+  };
+  isPopular: boolean;
+  isActive: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+type TabType = "main" | "domains";
+
 const ManagerDashboard = () => {
   const [apiEndpoint, setApiEndpoint] = useState("");
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -42,6 +68,8 @@ const ManagerDashboard = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
   const [selectedDomain, setSelectedDomain] = useState("");
+  const [planDetails, setPlanDetails] = useState<Plan | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>("domains");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -52,6 +80,7 @@ const ManagerDashboard = () => {
     isLoading: companyLoading,
     getCompanyByManagerId,
   } = useCompanyStore();
+  const { getPlanById } = usePlanStore();
 
   // Fetch company data when component mounts
   useEffect(() => {
@@ -59,6 +88,17 @@ const ManagerDashboard = () => {
       getCompanyByManagerId(user.id);
     }
   }, [user?.id, getCompanyByManagerId]);
+
+  // Fetch plan details when company data is loaded
+  useEffect(() => {
+    if (company?.plan?._id) {
+      const fetchPlanDetails = async () => {
+        const plan = await getPlanById(company.plan._id);
+        setPlanDetails(plan);
+      };
+      fetchPlanDetails();
+    }
+  }, [company?.plan?._id, getPlanById]);
 
   const handleConnect = async () => {
     if (!apiEndpoint) return;
@@ -144,6 +184,482 @@ const ManagerDashboard = () => {
     }
   };
 
+  const renderMainTab = () => (
+    <>
+      {/* Company Stats */}
+      {company && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          <Card className="glass-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Total Employees</h3>
+              <Users className="h-6 w-6 text-blue-400" />
+            </div>
+            <p className="text-3xl font-bold text-blue-400">
+              {company.employees.length}
+            </p>
+            <p className="text-foreground/70 mt-2">Active team members</p>
+          </Card>
+
+          <Card className="glass-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Domain</h3>
+              <Globe className="h-6 w-6 text-green-400" />
+            </div>
+            <p className="text-xl font-bold text-green-400">
+              {company.domain.reference.name}
+            </p>
+            <p className="text-foreground/70 mt-2">
+              {company.domain.reference.description}
+            </p>
+          </Card>
+
+          <Card className="glass-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Manager</h3>
+              <UserPlus className="h-6 w-6 text-purple-400" />
+            </div>
+            <p className="text-xl font-bold text-purple-400">
+              {company.manager.reference.name}
+            </p>
+            <p className="text-foreground/70 mt-2">
+              {company.manager.reference.email}
+            </p>
+          </Card>
+
+          <Card className="glass-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Current Plan</h3>
+              <div
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  planDetails?.name === "Premium"
+                    ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30"
+                    : planDetails?.name === "Pro"
+                    ? "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border border-blue-500/30"
+                    : "bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border border-green-500/30"
+                }`}
+              >
+                {planDetails?.name || "Loading..."}
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-amber-400">
+              {planDetails?.price === 0
+                ? "Free"
+                : planDetails?.price
+                ? `${planDetails.price} ${planDetails.currency}`
+                : "Loading..."}
+            </p>
+            <p className="text-foreground/70 mt-2">
+              {planDetails?.period === "month"
+                ? "per month"
+                : planDetails?.period
+                ? `per ${planDetails.period}`
+                : ""}
+            </p>
+            <div className="mt-3 text-xs text-foreground/60">
+              <p>• {planDetails?.limits?.employees || 0} employees</p>
+              <p>
+                • {planDetails?.limits?.domains || 0} domain
+                {(planDetails?.limits?.domains || 0) > 1 ? "s" : ""}
+              </p>
+              <p>• {planDetails?.limits?.requestsPerDay || 0} requests/day</p>
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Plan Details Section */}
+      {company && planDetails && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="glass-card p-6 rounded-2xl"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-foreground">
+              Current Plan Details
+            </h2>
+
+            {planDetails?.name !== "Premium" && (
+              <Button
+                onClick={() => navigate("/payment")}
+                className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/30"
+              >
+                Upgrade Plan
+              </Button>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div
+                  className={`p-2 rounded-lg ${
+                    planDetails?.name === "Premium"
+                      ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20"
+                      : planDetails?.name === "Pro"
+                      ? "bg-gradient-to-r from-blue-500/20 to-cyan-500/20"
+                      : "bg-gradient-to-r from-green-500/20 to-emerald-500/20"
+                  }`}
+                >
+                  <div
+                    className={`text-2xl font-bold ${
+                      planDetails?.name === "Premium"
+                        ? "text-purple-300"
+                        : planDetails?.name === "Pro"
+                        ? "text-blue-300"
+                        : "text-green-300"
+                    }`}
+                  >
+                    {planDetails?.name || "Loading..."}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-amber-400">
+                    {planDetails?.price === 0
+                      ? "Free"
+                      : planDetails?.price
+                      ? `${planDetails.price} ${planDetails.currency}`
+                      : "Loading..."}
+                  </p>
+                  <p className="text-foreground/70">
+                    {planDetails?.period === "month"
+                      ? "per month"
+                      : planDetails?.period
+                      ? `per ${planDetails.period}`
+                      : ""}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-foreground/80 mb-6">
+                {planDetails?.description || "Loading plan description..."}
+              </p>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground">
+                  Plan Features:
+                </h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {planDetails?.features?.map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-foreground/80">
+                        {feature}
+                      </span>
+                    </div>
+                  )) || (
+                    <div className="text-sm text-foreground/60">
+                      Loading features...
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">
+                Usage Limits:
+              </h4>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Users className="h-5 w-5 text-blue-400" />
+                    <span className="text-foreground/80">Employees</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-blue-400">
+                      {company.employees.length}
+                    </p>
+                    <p className="text-xs text-foreground/60">
+                      / {planDetails?.limits?.employees || 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Globe className="h-5 w-5 text-green-400" />
+                    <span className="text-foreground/80">Domains</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-green-400">
+                      {company.domains.length}
+                    </p>
+                    <p className="text-xs text-foreground/60">
+                      / {planDetails?.limits?.domains || 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Activity className="h-5 w-5 text-purple-400" />
+                    <span className="text-foreground/80">Daily Requests</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-purple-400">0</p>
+                    <p className="text-xs text-foreground/60">
+                      / {planDetails?.limits?.requestsPerDay || 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Settings className="h-5 w-5 text-amber-400" />
+                    <span className="text-foreground/80">Data Retention</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-amber-400">
+                      {planDetails?.limits?.dataRetention || 0}
+                    </p>
+                    <p className="text-xs text-foreground/60">days</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Employee List */}
+      {company && company.employees.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="glass-card p-6 rounded-2xl"
+        >
+          <h3 className="text-xl font-semibold mb-4">Team Members</h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {company.employees.map((employee) => (
+              <Card key={employee._id} className="glass-card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      {employee.name}
+                    </p>
+                    <p className="text-sm text-foreground/70">
+                      {employee.email}
+                    </p>
+                    <span className="inline-block px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded-full mt-1">
+                      {employee.role}
+                    </span>
+                  </div>
+                  <UserMinus className="h-5 w-5 text-red-400 cursor-pointer hover:text-red-300" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </>
+  );
+
+  const renderDomainsTab = () => (
+    <>
+      {/* Domain Selection */}
+      {company && company.domains.length > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="glass-card p-6 rounded-2xl mb-6"
+        >
+          <h3 className="text-lg font-semibold mb-4">Select Domain</h3>
+          <div className="flex flex-wrap gap-3">
+            {company.domains.map((domainItem, index) => (
+              <Button
+                key={index}
+                onClick={() => setSelectedDomain(domainItem.place)}
+                variant={
+                  selectedDomain === domainItem.place ? "default" : "outline"
+                }
+                className={`${
+                  selectedDomain === domainItem.place
+                    ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                    : "bg-white/5 text-foreground/70 border-white/20"
+                }`}
+              >
+                <Globe className="h-4 w-4 mr-2" />
+                {domainItem.place}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* API Input Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="glass-card p-6 rounded-2xl mb-6"
+      >
+        <h2 className="text-xl font-semibold mb-4 text-foreground">
+          Domain Monitoring Setup
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <Label htmlFor="api-endpoint">API Endpoint</Label>
+            <div className="flex space-x-2">
+              <div className="relative flex-1">
+                <LinkIcon className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="api-endpoint"
+                  placeholder="https://api.sensor.com/data"
+                  value={apiEndpoint}
+                  onChange={(e) => setApiEndpoint(e.target.value)}
+                  className="pl-10 glass-card border-white/20"
+                />
+              </div>
+              <Button
+                onClick={handleConnect}
+                disabled={isProcessing || !apiEndpoint}
+                className="bg-primary/80 hover:bg-primary text-white"
+              >
+                {isProcessing ? "Connecting..." : "Connect"}
+              </Button>
+            </div>
+          </div>
+        </div>
+        {isConnected && (
+          <div className="mt-4 flex items-center space-x-2 text-green-400">
+            <CheckCircle className="h-5 w-5" />
+            <span className="text-sm font-medium">Connected to sensor</span>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Detailed Condition Cards */}
+      {data && (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
+          >
+            <Card className="glass-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Status</h3>
+                {data.condition === "Safe" ? (
+                  <CheckCircle className="h-6 w-6 text-green-400" />
+                ) : (
+                  <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                )}
+              </div>
+              <p
+                className={`text-2xl font-bold ${
+                  data.condition === "Safe"
+                    ? "text-green-400"
+                    : "text-yellow-400"
+                }`}
+              >
+                {data.condition}
+              </p>
+              <p className="text-foreground/70 mt-2">{data.domain}</p>
+            </Card>
+
+            <Card className="glass-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Temperature</h3>
+                <Thermometer className="h-6 w-6 text-red-400" />
+              </div>
+              <p className="text-3xl font-bold text-red-400">
+                {data.temperature}°C
+              </p>
+              <p className="text-foreground/70 mt-2">
+                {data.temperature > 25 ? "Above optimal" : "Optimal range"}
+              </p>
+            </Card>
+
+            <Card className="glass-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Humidity</h3>
+                <Droplets className="h-6 w-6 text-blue-400" />
+              </div>
+              <p className="text-3xl font-bold text-blue-400">
+                {data.humidity}%
+              </p>
+              <p className="text-foreground/70 mt-2">
+                {data.humidity > 70 ? "High humidity" : "Normal levels"}
+              </p>
+            </Card>
+
+            <Card className="glass-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Activity</h3>
+                <Activity className="h-6 w-6 text-purple-400" />
+              </div>
+              <p className="text-3xl font-bold text-purple-400">Active</p>
+              <p className="text-foreground/70 mt-2">Real-time monitoring</p>
+            </Card>
+          </motion.div>
+
+          {/* Additional Detailed Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="grid md:grid-cols-3 gap-6 mb-6"
+          >
+            <Card className="glass-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Data Quality</h3>
+                <Database className="h-6 w-6 text-cyan-400" />
+              </div>
+              <p className="text-2xl font-bold text-cyan-400">98.5%</p>
+              <p className="text-foreground/70 mt-2">High accuracy sensors</p>
+            </Card>
+
+            <Card className="glass-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Security</h3>
+                <Shield className="h-6 w-6 text-green-400" />
+              </div>
+              <p className="text-2xl font-bold text-green-400">Secure</p>
+              <p className="text-foreground/70 mt-2">Encrypted data transfer</p>
+            </Card>
+
+            <Card className="glass-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Performance</h3>
+                <Zap className="h-6 w-6 text-yellow-400" />
+              </div>
+              <p className="text-2xl font-bold text-yellow-400">Optimal</p>
+              <p className="text-foreground/70 mt-2">All systems operational</p>
+            </Card>
+          </motion.div>
+
+          {/* Recommendations */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="glass-card p-6 rounded-2xl"
+          >
+            <h3 className="text-xl font-semibold mb-4">AI Recommendations</h3>
+            <div className="space-y-3">
+              {data.recommendations.map((rec: string, index: number) => (
+                <div key={index} className="flex items-start space-x-3">
+                  <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                  <span className="text-foreground/80">{rec}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </>
+  );
+
   return (
     <div
       className={`min-h-screen transition-all duration-500 ease-in-out ${getDomainGlow()}`}
@@ -186,238 +702,38 @@ const ManagerDashboard = () => {
             <p className="text-center text-foreground/70 mt-4">
               Full access to environmental monitoring and configuration
             </p>
-          </motion.div>
 
-          {/* Company Stats */}
-          {company && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="grid md:grid-cols-3 gap-6"
-            >
-              <Card className="glass-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Total Employees</h3>
-                  <Users className="h-6 w-6 text-blue-400" />
-                </div>
-                <p className="text-3xl font-bold text-blue-400">
-                  {company.employees.length}
-                </p>
-                <p className="text-foreground/70 mt-2">Active team members</p>
-              </Card>
-
-              <Card className="glass-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Domain</h3>
-                  <Globe className="h-6 w-6 text-green-400" />
-                </div>
-                <p className="text-xl font-bold text-green-400">
-                  {company.domain.reference.name}
-                </p>
-                <p className="text-foreground/70 mt-2">
-                  {company.domain.reference.description}
-                </p>
-              </Card>
-
-              <Card className="glass-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Manager</h3>
-                  <UserPlus className="h-6 w-6 text-purple-400" />
-                </div>
-                <p className="text-xl font-bold text-purple-400">
-                  {company.manager.reference.name}
-                </p>
-                <p className="text-foreground/70 mt-2">
-                  {company.manager.reference.email}
-                </p>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Data Input Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="glass-card p-6 rounded-2xl"
-          >
-            <h2 className="text-xl font-semibold mb-4 text-foreground">
-              Data Input & Monitoring
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <Label htmlFor="api-endpoint">API Endpoint</Label>
-                <div className="flex space-x-2">
-                  <div className="relative flex-1">
-                    <LinkIcon className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="api-endpoint"
-                      placeholder="https://api.sensor.com/data"
-                      value={apiEndpoint}
-                      onChange={(e) => setApiEndpoint(e.target.value)}
-                      className="pl-10 glass-card border-white/20"
-                    />
-                  </div>
-                  <Button
-                    onClick={handleConnect}
-                    disabled={isProcessing || !apiEndpoint}
-                    className="bg-primary/80 hover:bg-primary text-white"
-                  >
-                    {isProcessing ? "Connecting..." : "Connect"}
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <Label htmlFor="csv-upload">CSV File Upload</Label>
-                <div className="relative">
-                  <Upload className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    id="csv-upload"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                    className="pl-10 glass-card border-white/20"
-                  />
-                </div>
-              </div>
+            {/* Tab Navigation */}
+            <div className="flex justify-center mt-6 space-x-4">
+              <Button
+                onClick={() => setActiveTab("main")}
+                variant={activeTab === "main" ? "default" : "outline"}
+                className={`${
+                  activeTab === "main"
+                    ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                    : "bg-white/5 text-foreground/70 border-white/20"
+                }`}
+              >
+                <Building className="h-4 w-4 mr-2" />
+                Main
+              </Button>
+              <Button
+                onClick={() => setActiveTab("domains")}
+                variant={activeTab === "domains" ? "default" : "outline"}
+                className={`${
+                  activeTab === "domains"
+                    ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                    : "bg-white/5 text-foreground/70 border-white/20"
+                }`}
+              >
+                <Globe className="h-4 w-4 mr-2" />
+                Domains
+              </Button>
             </div>
-            {isConnected && (
-              <div className="mt-4 flex items-center space-x-2 text-green-400">
-                <CheckCircle className="h-5 w-5" />
-                <span className="text-sm font-medium">Connected to sensor</span>
-              </div>
-            )}
           </motion.div>
 
-          {/* Employee List */}
-          {company && company.employees.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="glass-card p-6 rounded-2xl"
-            >
-              <h3 className="text-xl font-semibold mb-4">Team Members</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {company.employees.map((employee) => (
-                  <Card key={employee._id} className="glass-card p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {employee.name}
-                        </p>
-                        <p className="text-sm text-foreground/70">
-                          {employee.email}
-                        </p>
-                        <span className="inline-block px-2 py-1 text-xs bg-blue-500/20 text-blue-300 rounded-full mt-1">
-                          {employee.role}
-                        </span>
-                      </div>
-                      <UserMinus className="h-5 w-5 text-red-400 cursor-pointer hover:text-red-300" />
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* Results Section */}
-          {data && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="grid md:grid-cols-3 gap-6"
-            >
-              <Card className="glass-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Current Status</h3>
-                  {data.condition === "Safe" ? (
-                    <CheckCircle className="h-6 w-6 text-green-400" />
-                  ) : (
-                    <AlertTriangle className="h-6 w-6 text-yellow-400" />
-                  )}
-                </div>
-                <p
-                  className={`text-2xl font-bold ${
-                    data.condition === "Safe"
-                      ? "text-green-400"
-                      : "text-yellow-400"
-                  }`}
-                >
-                  {data.condition}
-                </p>
-                <p className="text-foreground/70 mt-2">{data.domain}</p>
-              </Card>
-
-              <Card className="glass-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Environmental Data</h3>
-                  <Activity className="h-6 w-6 text-blue-400" />
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Thermometer className="h-4 w-4 text-red-400" />
-                      <span>Temperature</span>
-                    </div>
-                    <span className="font-semibold">{data.temperature}°C</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Droplets className="h-4 w-4 text-blue-400" />
-                      <span>Humidity</span>
-                    </div>
-                    <span className="font-semibold">{data.humidity}%</span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="glass-card p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Quick Actions</h3>
-                  <TrendingUp className="h-6 w-6 text-purple-400" />
-                </div>
-                <div className="space-y-3">
-                  <Button
-                    className="w-full justify-start bg-blue-500/20 hover:bg-blue-500/30 text-blue-300"
-                    onClick={() => navigate("/insights")}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Insights
-                  </Button>
-                  <Button
-                    className="w-full justify-start bg-purple-500/20 hover:bg-purple-500/30 text-purple-300"
-                    onClick={() => navigate("/settings/customize")}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Customize Settings
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Recommendations */}
-          {data && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="glass-card p-6 rounded-2xl"
-            >
-              <h3 className="text-xl font-semibold mb-4">AI Recommendations</h3>
-              <div className="space-y-3">
-                {data.recommendations.map((rec: string, index: number) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
-                    <span className="text-foreground/80">{rec}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+          {/* Tab Content */}
+          {activeTab === "main" ? renderMainTab() : renderDomainsTab()}
         </div>
       </div>
     </div>

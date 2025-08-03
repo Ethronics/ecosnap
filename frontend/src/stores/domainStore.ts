@@ -27,7 +27,7 @@ export const useDomainStore = create<DomainStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("ecosnap_token");
       const response = await axios.post(
         `${API_URL}/api/domain/create`,
         { name, description },

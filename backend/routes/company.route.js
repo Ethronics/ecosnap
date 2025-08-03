@@ -18,4 +18,7 @@ router.delete(
   companyControllers.removeEmployee
 );
 
+// Domain management
+router.post("/:companyId/domains", companyControllers.addDomain);
+
 module.exports = router;

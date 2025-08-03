@@ -60,7 +60,10 @@ interface Company {
       description: string;
     };
   };
-  domains: string[];
+  domains: Array<{
+    domainId: string;
+    place: string;
+  }>;
   created_at: string;
 }
 
