@@ -63,7 +63,7 @@ export const DashboardPreview = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            See EnvoSnap in Action
+            See Envoinsight Ai in Action
           </h2>
           <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
             Experience the power of real-time environmental monitoring with our

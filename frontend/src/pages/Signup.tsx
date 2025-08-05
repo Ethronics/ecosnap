@@ -127,7 +127,7 @@ const Signup = () => {
 
     if (result.success) {
       toast({
-        title: "Welcome to EcoSnap!",
+        title: "Welcome to envoinsight!",
         description:
           "Your company and manager account have been created successfully. Please complete your payment to activate your account.",
       });
@@ -181,10 +181,12 @@ const Signup = () => {
             >
               <Waves className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                EcoSnap
+                envoinsight
               </span>
             </Link>
-            <h1 className="text-3xl font-bold text-foreground">Join EcoSnap</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Join envoinsight
+            </h1>
             <p className="text-foreground/70 mt-2">
               Create your company and manager account
             </p>

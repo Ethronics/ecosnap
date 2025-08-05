@@ -90,7 +90,7 @@ const Login = () => {
             >
               <Waves className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                EcoSnap
+                envoinsight
               </span>
             </Link>
             <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
@@ -157,15 +157,15 @@ const Login = () => {
             <div className="space-y-2 text-xs text-foreground/60">
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-amber-400" />
-                <span>Manager: manager@EcoSnap.com / manager123</span>
+                <span>Manager: manager@envoinsight.com / manager123</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-blue-400" />
-                <span>Staff: staff@EcoSnap.com / staff123</span>
+                <span>Staff: staff@envoinsight.com / staff123</span>
               </div>
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-green-400" />
-                <span>Employee: employee@EcoSnap.com / employee123</span>
+                <span>Employee: employee@envoinsight.com / employee123</span>
               </div>
             </div>
           </div> */}

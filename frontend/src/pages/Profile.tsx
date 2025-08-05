@@ -269,7 +269,7 @@ export default function Profile() {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">
-                  Need help? Contact our support team at support@ecosnap.com
+                  Need help? Contact our support team at support@envoinsight.com
                 </p>
               </CardContent>
             </Card>

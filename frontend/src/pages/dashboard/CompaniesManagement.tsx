@@ -36,41 +36,10 @@ import {
   Calendar,
 } from "lucide-react";
 
-interface Company {
-  _id: string;
-  companyName: string;
-  manager: {
-    reference: {
-      _id: string;
-      name: string;
-      email: string;
-      role: string;
-    };
-  };
-  employees: Array<{
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-  }>;
-  domain: {
-    reference: {
-      _id: string;
-      name: string;
-      description: string;
-    };
-  };
-  domains: Array<{
-    domainId: string;
-    place: string;
-  }>;
-  created_at: string;
-}
-
 const CompaniesManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -99,22 +68,27 @@ const CompaniesManagement = () => {
         .includes(searchTerm.toLowerCase());
 
     const matchesDomain =
-      domainFilter === "all" || company.domain.reference.name === domainFilter;
+      domainFilter === "all" ||
+      (company.domains.length > 0 && company.domains[0].name === domainFilter);
 
     return matchesSearch && matchesDomain;
   });
 
   // Get unique domains for filter
   const uniqueDomains = Array.from(
-    new Set(companies.map((company) => company.domain.reference.name))
+    new Set(
+      companies.flatMap((company) =>
+        company.domains.map((domain) => domain.name)
+      )
+    )
   ).filter(Boolean); // Filter out any empty or null values
 
-  const handleCompanyClick = (company: Company) => {
+  const handleCompanyClick = (company: any) => {
     setSelectedCompany(company);
     setIsDialogOpen(true);
   };
 
-  const handleEditCompany = (company: Company) => {
+  const handleEditCompany = (company: any) => {
     // TODO: Implement edit functionality
     toast({
       title: "Edit Company",
@@ -122,7 +96,7 @@ const CompaniesManagement = () => {
     });
   };
 
-  const handleDeleteCompany = async (company: Company) => {
+  const handleDeleteCompany = async (company: any) => {
     if (
       window.confirm(`Are you sure you want to delete ${company.companyName}?`)
     ) {
@@ -272,7 +246,7 @@ const CompaniesManagement = () => {
                       Created
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                      Actions
+                      Plan
                     </th>
                   </tr>
                 </thead>
@@ -328,11 +302,27 @@ const CompaniesManagement = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center space-x-2">
-                            <Globe className="h-4 w-4 text-green-400" />
-                            <span className="text-foreground">
-                              {company.domain.reference.name}
-                            </span>
+                          <div className="space-y-1">
+                            {company.domains.length > 0 ? (
+                              company.domains.map((domain, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <Globe className="h-4 w-4 text-green-400" />
+                                  <span className="text-foreground text-sm">
+                                    {domain.name}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="flex items-center space-x-2">
+                                <Globe className="h-4 w-4 text-gray-400" />
+                                <span className="text-foreground/70 text-sm">
+                                  N/A
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -353,29 +343,17 @@ const CompaniesManagement = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-blue-400 hover:text-blue-300"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditCompany(company);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-red-400 hover:text-red-300"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteCompany(company);
-                              }}
-                              disabled={isLoading}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <Shield className="h-4 w-4 text-purple-400" />
+                            <div>
+                              <div className="font-medium text-foreground">
+                                {company.plan?.name || "N/A"}
+                              </div>
+                              <div className="text-sm text-foreground/70">
+                                {company.plan?.price
+                                  ? `${company.plan.price}/${company.plan.period}`
+                                  : ""}
+                              </div>
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -418,11 +396,27 @@ const CompaniesManagement = () => {
                         Created: {formatDate(selectedCompany.created_at)}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Globe className="h-4 w-4 text-green-400" />
-                      <span className="text-foreground">
-                        Domain: {selectedCompany.domain.reference.name}
-                      </span>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4 text-green-400" />
+                        <span className="text-foreground font-medium">
+                          Domains:
+                        </span>
+                      </div>
+                      {selectedCompany.domains.length > 0 ? (
+                        selectedCompany.domains.map((domain, index) => (
+                          <div
+                            key={index}
+                            className="ml-6 text-sm text-foreground/80"
+                          >
+                            • {domain.name}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="ml-6 text-sm text-foreground/70">
+                          N/A
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -457,18 +451,99 @@ const CompaniesManagement = () => {
               {/* Domain Details */}
               <Card className="glass-card p-4">
                 <h3 className="text-lg font-semibold mb-3 text-foreground">
-                  Domain Information
+                  Domain Information ({selectedCompany.domains.length})
                 </h3>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Globe className="h-4 w-4 text-green-400" />
-                    <span className="text-foreground font-medium">
-                      {selectedCompany.domain.reference.name}
-                    </span>
-                  </div>
-                  <p className="text-foreground/70 ml-6">
-                    {selectedCompany.domain.reference.description}
-                  </p>
+                <div className="space-y-4">
+                  {selectedCompany.domains.length > 0 ? (
+                    selectedCompany.domains.map((domain, index) => (
+                      <div
+                        key={index}
+                        className="border-l-2 border-green-400/30 pl-4"
+                      >
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Globe className="h-4 w-4 text-green-400" />
+                          <span className="text-foreground font-medium">
+                            {domain.name}
+                          </span>
+                        </div>
+
+                        <div className="ml-6 mt-2 text-xs text-foreground/60">
+                          Place: {domain.place}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-foreground/70">
+                      No domains assigned
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Plan Information */}
+              <Card className="glass-card p-4">
+                <h3 className="text-lg font-semibold mb-3 text-foreground">
+                  Plan Information
+                </h3>
+                <div className="space-y-3">
+                  {selectedCompany.plan ? (
+                    <>
+                      <div className="flex items-center space-x-2">
+                        <Shield className="h-4 w-4 text-purple-400" />
+                        <span className="text-foreground font-medium">
+                          {selectedCompany.plan.name}
+                        </span>
+                        {selectedCompany.plan.isPopular && (
+                          <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-300 rounded-full">
+                            Popular
+                          </span>
+                        )}
+                      </div>
+                      <div className="ml-6 space-y-2">
+                        <div className="text-sm text-foreground/80">
+                          <span className="font-medium">Price:</span> $
+                          {selectedCompany.plan.price}{" "}
+                          {selectedCompany.plan.currency}/
+                          {selectedCompany.plan.period}
+                        </div>
+                        <div className="text-sm text-foreground/80">
+                          <span className="font-medium">Description:</span>{" "}
+                          {selectedCompany.plan.description}
+                        </div>
+                        <div className="text-sm text-foreground/80">
+                          <span className="font-medium">Limits:</span>
+                        </div>
+                        <div className="ml-4 text-xs text-foreground/60 space-y-1">
+                          <div>
+                            • Domains: {selectedCompany.plan.limits.domains}
+                          </div>
+                          <div>
+                            • Employees: {selectedCompany.plan.limits.employees}
+                          </div>
+                          <div>
+                            • Requests per day:{" "}
+                            {selectedCompany.plan.limits.requestsPerDay}
+                          </div>
+                          <div>
+                            • Data retention:{" "}
+                            {selectedCompany.plan.limits.dataRetention} days
+                          </div>
+                        </div>
+                        <div className="text-sm text-foreground/80">
+                          <span className="font-medium">Features:</span>
+                        </div>
+                        <div className="ml-4 text-xs text-foreground/60">
+                          {selectedCompany.plan.features.map(
+                            (feature, index) => (
+                              <div key={index}>• {feature}</div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-foreground/70">No plan assigned</div>
+                  )}
                 </div>
               </Card>
 

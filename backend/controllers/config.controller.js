@@ -1,3 +1,4 @@
+const Company = require("../models/Company.js");
 const Config = require("../models/Config.js");
 
 // threshold_temp: 22,
@@ -16,17 +17,27 @@ const Config = require("../models/Config.js");
 
 const UpdateConfig = async (req, res) => {
   try {
-    const { domain_id, threshold_temp, threshold_humidity, parameters } =
-      req.body;
-    const config = await Config.findOneAndUpdate(
-      { domain_id },
+    const {
+      company_id,
+      domain_id,
+      threshold_temp,
+      threshold_humidity,
+      parameters,
+    } = req.body;
+
+    const config = await Company.findOneAndUpdate(
+      { _id: company_id, "domains.domainId": domain_id },
       {
-        threshold_temp,
-        threshold_humidity,
-        parameters,
+        $set: {
+          "domains.$.config.threshold_temp": threshold_temp,
+          "domains.$.config.threshold_humidity": threshold_humidity,
+          "domains.$.config.parameters": parameters,
+          "domains.$.config.updated_at": new Date(),
+        },
       },
       { new: true }
     );
+
     res.status(200).json({
       message: "Config updated successfully",
       data: config,

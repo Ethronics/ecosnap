@@ -286,7 +286,7 @@ export const Payment = () => {
                             Account Name:
                           </span>
                           <span className="font-mono">
-                            EnvoSnap Technologies PLC
+                            envoinsight Technologies PLC
                           </span>
                         </div>
                         <div className="flex justify-between">

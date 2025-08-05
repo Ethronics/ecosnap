@@ -1,8 +1,8 @@
-# EcoSnap 🌡️💧
+# Envoinsight AI 🌡️💧
 
 **Smart Environmental Sensing with AI**
 
-EcoSnap is a comprehensive environmental monitoring system that provides real-time temperature and humidity tracking with AI-powered predictive analytics. The platform enables organizations to monitor environmental conditions across multiple domains, set custom thresholds, and receive intelligent alerts for safety and compliance.
+Envoinsight AI is a comprehensive environmental monitoring system that provides real-time temperature and humidity tracking with AI-powered predictive analytics. The platform enables organizations to monitor environmental conditions across multiple domains, set custom thresholds, and receive intelligent alerts for safety and compliance.
 
 ## ✨ Features
 
@@ -80,7 +80,7 @@ EcoSnap is a comprehensive environmental monitoring system that provides real-ti
 
    ```bash
    git clone https://github.com/Ethronics/ecosnap.git
-   cd EcoSnap
+   cd ecosnap
    ```
 
 2. **Install backend dependencies**
@@ -132,7 +132,7 @@ EcoSnap is a comprehensive environmental monitoring system that provides real-ti
 ## 📁 Project Structure
 
 ```
-EcoSnap/
+ecosnap/
 ├── backend/                 # Node.js/Express backend
 │   ├── Auth/               # Authentication logic
 │   ├── config/             # Database configuration

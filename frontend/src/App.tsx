@@ -23,6 +23,7 @@ import UsersManagement from "./pages/dashboard/UsersManagement";
 import EmployeesManagement from "./pages/dashboard/EmployeesManagement";
 import CompaniesManagement from "./pages/dashboard/CompaniesManagement";
 import { Payment } from "./pages/Payment";
+import Alerts from "./pages/Alerts";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => {
             <Route path="/history" element={<History />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/payment" element={<Payment />} />
+            <Route path="/alerts" element={<Alerts />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

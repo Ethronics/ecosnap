@@ -9,14 +9,12 @@ const companySchema = new mongoose.Schema({
       required: true,
     },
   },
-  employees: { type: Array, required: true },
-  domain: {
-    reference: {
+  employees: [
+    {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Domain",
-      required: true,
+      ref: "User",
     },
-  },
+  ],
   domains: [
     {
       domainId: {
@@ -24,9 +22,18 @@ const companySchema = new mongoose.Schema({
         ref: "Domain",
         required: true,
       },
+      // Domain information saved directly in company
+      name: { type: String, required: true },
+      description: { type: String },
       place: {
         type: String,
         required: true,
+      },
+      config: {
+        threshold_temp: { type: Number, required: true },
+        threshold_humidity: { type: Number, required: true },
+        parameters: { type: mongoose.Schema.Types.Mixed },
+        updated_at: { type: Date, default: Date.now },
       },
     },
   ],

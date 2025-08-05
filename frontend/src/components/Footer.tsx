@@ -21,7 +21,7 @@ export const Footer = () => {
               >
                 <Waves className="h-8 w-8 text-primary" />
                 <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  EcoSnap
+                  envoinsight
                 </span>
               </Link>
               <p className="text-foreground/70">
@@ -85,7 +85,7 @@ export const Footer = () => {
           </div>
 
           <div className="border-t border-white/20 mt-8 pt-8 text-center text-foreground/60">
-            <p>&copy; 2025 EcoSnap. All rights reserved.</p>
+            <p>&copy; 2025 envoinsight. All rights reserved.</p>
           </div>
         </motion.div>
       </div>

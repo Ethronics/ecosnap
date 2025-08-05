@@ -62,14 +62,21 @@ interface Plan {
 type TabType = "main" | "domains";
 
 const ManagerDashboard = () => {
-  const [apiEndpoint, setApiEndpoint] = useState("");
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [apiEndpoints, setApiEndpoints] = useState<{ [key: string]: string }>(
+    {}
+  );
+  const [csvFiles, setCsvFiles] = useState<{ [key: string]: File | null }>({});
+  const [connections, setConnections] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+  const [processing, setProcessing] = useState<{ [key: string]: boolean }>({});
+  const [domainData, setDomainData] = useState<{
+    [key: string]: DashboardData | null;
+  }>({});
   const [selectedDomain, setSelectedDomain] = useState("");
   const [planDetails, setPlanDetails] = useState<Plan | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("domains");
+  const [activeDomainTab, setActiveDomainTab] = useState<string>("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -100,72 +107,39 @@ const ManagerDashboard = () => {
     }
   }, [company?.plan?._id, getPlanById]);
 
-  const handleConnect = async () => {
+  const handleConnect = async (domainPlace: string) => {
+    const apiEndpoint = apiEndpoints[domainPlace];
     if (!apiEndpoint) return;
 
-    setIsProcessing(true);
+    setProcessing((prev) => ({ ...prev, [domainPlace]: true }));
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    setIsConnected(true);
-    setData({
-      condition: "Safe",
-      temperature: 24.5,
-      humidity: 65,
-      domain:
-        selectedDomain ||
-        company?.domain.reference.name ||
-        "Office Environment",
-      recommendations: [
-        "Temperature levels are optimal",
-        "Humidity within acceptable range",
-        "No immediate action required",
-      ],
-    });
+    setConnections((prev) => ({ ...prev, [domainPlace]: true }));
+    setDomainData((prev) => ({
+      ...prev,
+      [domainPlace]: {
+        condition: "Safe",
+        temperature: 24.5,
+        humidity: 65,
+        domain: domainPlace,
+        recommendations: [
+          "Temperature levels are optimal",
+          "Humidity within acceptable range",
+          "No immediate action required",
+        ],
+      },
+    }));
 
     toast({
       title: "Connected Successfully",
-      description: "Sensor data is now being monitored.",
+      description: `Sensor data for ${domainPlace} is now being monitored.`,
     });
 
-    setIsProcessing(false);
-  };
-
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setCsvFile(file);
-    setIsProcessing(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setData({
-      condition: "Moderate Risk",
-      temperature: 28.3,
-      humidity: 78,
-      domain:
-        selectedDomain ||
-        company?.domain.reference.name ||
-        "Agricultural Field",
-      recommendations: [
-        "Temperature slightly elevated",
-        "Consider increasing ventilation",
-        "Monitor air quality closely",
-      ],
-    });
-
-    toast({
-      title: "CSV Processed",
-      description: "Environmental data has been analyzed.",
-    });
-
-    setIsProcessing(false);
+    setProcessing((prev) => ({ ...prev, [domainPlace]: false }));
   };
 
   const getDomainGlow = () => {
-    const domainName = company?.domain.reference.name || selectedDomain;
+    const domainName = company?.domains?.[0]?.name || selectedDomain;
     switch (domainName) {
       case "Agriculture":
         return "bg-gradient-to-tr from-green-900/40 via-green-600/10 to-green-900/40 shadow-green-500/10";
@@ -211,10 +185,10 @@ const ManagerDashboard = () => {
               <Globe className="h-6 w-6 text-green-400" />
             </div>
             <p className="text-xl font-bold text-green-400">
-              {company.domain.reference.name}
+              {company.domains?.[0]?.name || "No Domain"}
             </p>
             <p className="text-foreground/70 mt-2">
-              {company.domain.reference.description}
+              {company.domains?.[0]?.description || "No description"}
             </p>
           </Card>
 
@@ -224,10 +198,10 @@ const ManagerDashboard = () => {
               <UserPlus className="h-6 w-6 text-purple-400" />
             </div>
             <p className="text-xl font-bold text-purple-400">
-              {company.manager.reference.name}
+              {company.manager?.reference?.name || "Manager"}
             </p>
             <p className="text-foreground/70 mt-2">
-              {company.manager.reference.email}
+              {company.manager?.reference?.email || "No email"}
             </p>
           </Card>
 
@@ -464,199 +438,262 @@ const ManagerDashboard = () => {
 
   const renderDomainsTab = () => (
     <>
-      {/* Domain Selection */}
-      {company && company.domains.length > 1 && (
+      {/* Domain Selection Tabs */}
+      {company && company.domains.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="glass-card p-6 rounded-2xl mb-6"
         >
-          <h3 className="text-lg font-semibold mb-4">Select Domain</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            Select Domain to Monitor
+          </h3>
           <div className="flex flex-wrap gap-3">
             {company.domains.map((domainItem, index) => (
               <Button
                 key={index}
-                onClick={() => setSelectedDomain(domainItem.place)}
+                onClick={() => setActiveDomainTab(domainItem.place)}
                 variant={
-                  selectedDomain === domainItem.place ? "default" : "outline"
+                  activeDomainTab === domainItem.place ? "default" : "outline"
                 }
                 className={`${
-                  selectedDomain === domainItem.place
+                  activeDomainTab === domainItem.place
                     ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
                     : "bg-white/5 text-foreground/70 border-white/20"
                 }`}
               >
                 <Globe className="h-4 w-4 mr-2" />
                 {domainItem.place}
+                {connections[domainItem.place] && (
+                  <CheckCircle className="h-4 w-4 ml-2 text-green-400" />
+                )}
               </Button>
             ))}
           </div>
         </motion.div>
       )}
 
-      {/* API Input Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="glass-card p-6 rounded-2xl mb-6"
-      >
-        <h2 className="text-xl font-semibold mb-4 text-foreground">
-          Domain Monitoring Setup
-        </h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <Label htmlFor="api-endpoint">API Endpoint</Label>
-            <div className="flex space-x-2">
-              <div className="relative flex-1">
-                <LinkIcon className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="api-endpoint"
-                  placeholder="https://api.sensor.com/data"
-                  value={apiEndpoint}
-                  onChange={(e) => setApiEndpoint(e.target.value)}
-                  className="pl-10 glass-card border-white/20"
-                />
-              </div>
-              <Button
-                onClick={handleConnect}
-                disabled={isProcessing || !apiEndpoint}
-                className="bg-primary/80 hover:bg-primary text-white"
-              >
-                {isProcessing ? "Connecting..." : "Connect"}
-              </Button>
-            </div>
-          </div>
-        </div>
-        {isConnected && (
-          <div className="mt-4 flex items-center space-x-2 text-green-400">
-            <CheckCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">Connected to sensor</span>
-          </div>
-        )}
-      </motion.div>
+      {/* Domain Monitoring Section - Only show selected domain */}
+      {company &&
+        activeDomainTab &&
+        (() => {
+          const domainItem = company.domains.find(
+            (d) => d.place === activeDomainTab
+          );
+          if (!domainItem) return null;
 
-      {/* Detailed Condition Cards */}
-      {data && (
-        <>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
-          >
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Status</h3>
-                {data.condition === "Safe" ? (
-                  <CheckCircle className="h-6 w-6 text-green-400" />
-                ) : (
-                  <AlertTriangle className="h-6 w-6 text-yellow-400" />
+          return (
+            <motion.div
+              key={activeDomainTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="glass-card p-6 rounded-2xl mb-6"
+            >
+              <div className="flex items-center space-x-3 mb-6">
+                <Globe className="h-6 w-6 text-blue-400" />
+                <h2 className="text-xl font-semibold text-foreground">
+                  {domainItem.place} Monitoring
+                </h2>
+                {connections[domainItem.place] && (
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Connected</span>
+                  </div>
                 )}
               </div>
-              <p
-                className={`text-2xl font-bold ${
-                  data.condition === "Safe"
-                    ? "text-green-400"
-                    : "text-yellow-400"
-                }`}
-              >
-                {data.condition}
-              </p>
-              <p className="text-foreground/70 mt-2">{data.domain}</p>
-            </Card>
 
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Temperature</h3>
-                <Thermometer className="h-6 w-6 text-red-400" />
-              </div>
-              <p className="text-3xl font-bold text-red-400">
-                {data.temperature}°C
-              </p>
-              <p className="text-foreground/70 mt-2">
-                {data.temperature > 25 ? "Above optimal" : "Optimal range"}
-              </p>
-            </Card>
-
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Humidity</h3>
-                <Droplets className="h-6 w-6 text-blue-400" />
-              </div>
-              <p className="text-3xl font-bold text-blue-400">
-                {data.humidity}%
-              </p>
-              <p className="text-foreground/70 mt-2">
-                {data.humidity > 70 ? "High humidity" : "Normal levels"}
-              </p>
-            </Card>
-
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Activity</h3>
-                <Activity className="h-6 w-6 text-purple-400" />
-              </div>
-              <p className="text-3xl font-bold text-purple-400">Active</p>
-              <p className="text-foreground/70 mt-2">Real-time monitoring</p>
-            </Card>
-          </motion.div>
-
-          {/* Additional Detailed Cards */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid md:grid-cols-3 gap-6 mb-6"
-          >
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Data Quality</h3>
-                <Database className="h-6 w-6 text-cyan-400" />
-              </div>
-              <p className="text-2xl font-bold text-cyan-400">98.5%</p>
-              <p className="text-foreground/70 mt-2">High accuracy sensors</p>
-            </Card>
-
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Security</h3>
-                <Shield className="h-6 w-6 text-green-400" />
-              </div>
-              <p className="text-2xl font-bold text-green-400">Secure</p>
-              <p className="text-foreground/70 mt-2">Encrypted data transfer</p>
-            </Card>
-
-            <Card className="glass-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Performance</h3>
-                <Zap className="h-6 w-6 text-yellow-400" />
-              </div>
-              <p className="text-2xl font-bold text-yellow-400">Optimal</p>
-              <p className="text-foreground/70 mt-2">All systems operational</p>
-            </Card>
-          </motion.div>
-
-          {/* Recommendations */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="glass-card p-6 rounded-2xl"
-          >
-            <h3 className="text-xl font-semibold mb-4">AI Recommendations</h3>
-            <div className="space-y-3">
-              {data.recommendations.map((rec: string, index: number) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
-                  <span className="text-foreground/80">{rec}</span>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <Label htmlFor={`api-endpoint-${domainItem.place}`}>
+                    API Endpoint
+                  </Label>
+                  <div className="flex space-x-2">
+                    <div className="relative flex-1">
+                      <LinkIcon className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        id={`api-endpoint-${domainItem.place}`}
+                        placeholder="https://api.sensor.com/data"
+                        value={apiEndpoints[domainItem.place] || ""}
+                        onChange={(e) =>
+                          setApiEndpoints((prev) => ({
+                            ...prev,
+                            [domainItem.place]: e.target.value,
+                          }))
+                        }
+                        className="pl-10 glass-card border-white/20"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => handleConnect(domainItem.place)}
+                      disabled={
+                        processing[domainItem.place] ||
+                        !apiEndpoints[domainItem.place]
+                      }
+                      className="bg-primary/80 hover:bg-primary text-white"
+                    >
+                      {processing[domainItem.place]
+                        ? "Connecting..."
+                        : "Connect"}
+                    </Button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        </>
-      )}
+              </div>
+            </motion.div>
+          );
+        })()}
+
+      {/* Domain Dashboard - Only show for selected domain with data */}
+      {company &&
+        activeDomainTab &&
+        (() => {
+          const data = domainData[activeDomainTab];
+          if (!data) return null;
+
+          const domainItem = company.domains.find(
+            (d) => d.place === activeDomainTab
+          );
+          if (!domainItem) return null;
+
+          return (
+            <motion.div
+              key={`dashboard-${activeDomainTab}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="glass-card p-6 rounded-2xl mb-6"
+            >
+              <div className="flex justify-between items-center w-full px-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <Globe className="h-6 w-6 text-blue-400" />
+                  <h3 className="text-xl font-semibold">
+                    {domainItem.place} Dashboard
+                  </h3>
+                </div>
+                <Button
+                  onClick={() => navigate("/insights")}
+                  variant="ghost"
+                  className="glass-card bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
+                >
+                  Insights
+                </Button>
+              </div>
+
+              {/* Detailed Condition Cards */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <Card className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Status</h3>
+                    {data.condition === "Safe" ? (
+                      <CheckCircle className="h-6 w-6 text-green-400" />
+                    ) : (
+                      <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                    )}
+                  </div>
+                  <p
+                    className={`text-2xl font-bold ${
+                      data.condition === "Safe"
+                        ? "text-green-400"
+                        : "text-yellow-400"
+                    }`}
+                  >
+                    {data.condition}
+                  </p>
+                  <p className="text-foreground/70 mt-2">{data.domain}</p>
+                </Card>
+
+                <Card className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Temperature</h3>
+                    <Thermometer className="h-6 w-6 text-red-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-red-400">
+                    {data.temperature}°C
+                  </p>
+                  <p className="text-foreground/70 mt-2">
+                    {data.temperature > 25 ? "Above optimal" : "Optimal range"}
+                  </p>
+                </Card>
+
+                <Card className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Humidity</h3>
+                    <Droplets className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-blue-400">
+                    {data.humidity}%
+                  </p>
+                  <p className="text-foreground/70 mt-2">
+                    {data.humidity > 70 ? "High humidity" : "Normal levels"}
+                  </p>
+                </Card>
+
+                <Card className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Activity</h3>
+                    <Activity className="h-6 w-6 text-purple-400" />
+                  </div>
+                  <p className="text-3xl font-bold text-purple-400">Active</p>
+                  <p className="text-foreground/70 mt-2">
+                    Real-time monitoring
+                  </p>
+                </Card>
+              </div>
+
+              {/* Additional Detailed Cards */}
+              <div className="grid md:grid-cols-3 gap-6 mb-6">
+                <Card className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Data Quality</h3>
+                    <Database className="h-6 w-6 text-cyan-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-cyan-400">98.5%</p>
+                  <p className="text-foreground/70 mt-2">
+                    High accuracy sensors
+                  </p>
+                </Card>
+
+                <Card className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Security</h3>
+                    <Shield className="h-6 w-6 text-green-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-green-400">Secure</p>
+                  <p className="text-foreground/70 mt-2">
+                    Encrypted data transfer
+                  </p>
+                </Card>
+
+                <Card className="glass-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Performance</h3>
+                    <Zap className="h-6 w-6 text-yellow-400" />
+                  </div>
+                  <p className="text-2xl font-bold text-yellow-400">Optimal</p>
+                  <p className="text-foreground/70 mt-2">
+                    All systems operational
+                  </p>
+                </Card>
+              </div>
+
+              {/* Recommendations */}
+              <div className="glass-card p-6 rounded-2xl">
+                <h3 className="text-xl font-semibold mb-4">
+                  AI Recommendations
+                </h3>
+                <div className="space-y-3">
+                  {data.recommendations.map((rec: string, index: number) => (
+                    <div key={index} className="flex items-start space-x-3">
+                      <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                      <span className="text-foreground/80">{rec}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
     </>
   );
 
@@ -689,9 +726,11 @@ const ManagerDashboard = () => {
                 </div>
                 <div className="flex items-center justify-center space-x-2 text-foreground/70">
                   <Globe className="h-4 w-4" />
-                  <span>{company.domain.reference.name}</span>
+                  <span>{company.domains?.[0]?.name || "No Domain"}</span>
                   <span>•</span>
-                  <span>Managed by {company.manager.reference.name}</span>
+                  <span>
+                    Managed by {company.manager?.reference?.name || "Manager"}
+                  </span>
                 </div>
               </>
             ) : (

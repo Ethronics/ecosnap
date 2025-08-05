@@ -39,9 +39,11 @@ export const useUserStore = create<UserStore>((set) => ({
       set({ isLoading: true, error: null });
       const response = await axios.get(`${API_URL}/api/users/all`);
       set({ users: response.data.data, isLoading: false });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.message || "Failed to fetch users";
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to fetch users";
       set({ error: errorMessage, isLoading: false });
       console.log(errorMessage);
     }
@@ -51,7 +53,7 @@ export const useUserStore = create<UserStore>((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.post(
         `${API_URL}/api/users/create`,
         userData,
@@ -73,9 +75,11 @@ export const useUserStore = create<UserStore>((set) => ({
         return true;
       }
       return false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.message || "Failed to create user";
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to create user";
       set({ error: errorMessage, isLoading: false });
       console.log(errorMessage);
       return false;

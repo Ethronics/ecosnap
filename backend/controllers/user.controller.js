@@ -69,12 +69,7 @@ const createUser = async (req, res) => {
 
     if (company) {
       // Add the new user to the company's employees array
-      company.employees.push({
-        _id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
-        role: savedUser.role,
-      });
+      company.employees.push(savedUser._id);
       await company.save();
     }
 
@@ -184,6 +179,9 @@ const deleteUser = async (req, res) => {
         message: "User not found",
       });
     }
+
+    // Remove the user from all companies' employees arrays
+    await Company.updateMany({ employees: id }, { $pull: { employees: id } });
 
     res.status(200).json({
       message: "User deleted successfully",

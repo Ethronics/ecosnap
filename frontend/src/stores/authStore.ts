@@ -46,8 +46,8 @@ const useAuthStore = create<AuthState>((set) => ({
 
   initializeAuth: () => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("ecosnap_token");
-      const user = localStorage.getItem("ecosnap_user");
+      const token = localStorage.getItem("envoinsight_token");
+      const user = localStorage.getItem("envoinsight_user");
 
       if (token && user) {
         try {
@@ -60,8 +60,8 @@ const useAuthStore = create<AuthState>((set) => ({
           console.log("Auth initialized from localStorage:", userData);
         } catch (error) {
           console.error("Error parsing user data from localStorage:", error);
-          localStorage.removeItem("ecosnap_token");
-          localStorage.removeItem("ecosnap_user");
+          localStorage.removeItem("envoinsight_token");
+          localStorage.removeItem("envoinsight_user");
         }
       }
     }
@@ -94,8 +94,8 @@ const useAuthStore = create<AuthState>((set) => ({
       if (response.status === 200) {
         const { token, user } = response.data;
         if (typeof window !== "undefined") {
-          localStorage.setItem("ecosnap_token", token);
-          localStorage.setItem("ecosnap_user", JSON.stringify(user));
+          localStorage.setItem("envoinsight_token", token);
+          localStorage.setItem("envoinsight_user", JSON.stringify(user));
         }
         set({
           user,
@@ -147,8 +147,8 @@ const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("ecosnap_token");
-      localStorage.removeItem("ecosnap_user");
+      localStorage.removeItem("envoinsight_token");
+      localStorage.removeItem("envoinsight_user");
     }
     set({
       user: null,

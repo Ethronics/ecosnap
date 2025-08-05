@@ -1,6 +1,6 @@
 import { API_URL } from "@/config/constant";
 import { create } from "zustand";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 interface Employee {
   _id: string;
@@ -43,9 +43,30 @@ interface Plan {
   isPopular: boolean;
 }
 
+interface ConfigParameters {
+  temperature: {
+    min: number;
+    max: number;
+    optimal: number;
+  };
+  humidity: {
+    min: number;
+    max: number;
+    optimal: number;
+  };
+}
+
 interface DomainItem {
   domainId: string;
+  name: string;
+  description: string;
   place: string;
+  config: {
+    threshold_temp: number;
+    threshold_humidity: number;
+    parameters: ConfigParameters;
+    updated_at: string;
+  };
 }
 
 interface Company {
@@ -65,6 +86,7 @@ interface CompanyStore {
   isLoading: boolean;
   error: string | null;
   getCompanyByManagerId: (managerId: string) => Promise<void>;
+  getCompanyByEmployeeId: (employeeId: string) => Promise<void>;
   getAllCompanies: () => Promise<void>;
   addEmployee: (companyId: string, employeeId: string) => Promise<boolean>;
   removeEmployee: (companyId: string, employeeId: string) => Promise<boolean>;
@@ -72,6 +94,11 @@ interface CompanyStore {
     companyId: string,
     domainId: string,
     placeName: string
+  ) => Promise<boolean>;
+  updateDomainPlace: (
+    companyId: string,
+    domainId: string,
+    place: string
   ) => Promise<boolean>;
   clearError: () => void;
 }
@@ -86,7 +113,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.get(`${API_URL}/api/companies/all`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,9 +135,46 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
           });
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.message || "Failed to fetch company data";
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to fetch company data";
+      set({ error: errorMessage, isLoading: false });
+    }
+  },
+
+  getCompanyByEmployeeId: async (employeeId: string) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const token = localStorage.getItem("envoinsight_token");
+      const response = await axios.get(`${API_URL}/api/companies/all`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 200) {
+        const companies = response.data.data;
+        const company = companies.find((comp: Company) =>
+          comp.employees.some((emp) => emp._id === employeeId)
+        );
+
+        if (company) {
+          set({ company, isLoading: false });
+        } else {
+          set({
+            error: "No company found for this employee",
+            isLoading: false,
+          });
+        }
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to fetch company data";
       set({ error: errorMessage, isLoading: false });
     }
   },
@@ -119,7 +183,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.get(`${API_URL}/api/companies/all`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -129,9 +193,11 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
       if (response.status === 200) {
         set({ companies: response.data.data, isLoading: false });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.message || "Failed to fetch companies";
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to fetch companies";
       set({ error: errorMessage, isLoading: false });
     }
   },
@@ -140,7 +206,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.post(
         `${API_URL}/api/companies/${companyId}/employees`,
         { employeeId },
@@ -157,9 +223,11 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
         return true;
       }
       return false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.message || "Failed to add employee";
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to add employee";
       set({ error: errorMessage, isLoading: false });
       return false;
     }
@@ -169,7 +237,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.delete(
         `${API_URL}/api/companies/${companyId}/employees/${employeeId}`,
         {
@@ -185,9 +253,11 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
         return true;
       }
       return false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.message || "Failed to remove employee";
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to remove employee";
       set({ error: errorMessage, isLoading: false });
       return false;
     }
@@ -197,7 +267,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.post(
         `${API_URL}/api/companies/${companyId}/domains`,
         { domainId, placeName },
@@ -214,9 +284,46 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
         return true;
       }
       return false;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
-        error.response?.data?.message || "Failed to add domain";
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to add domain";
+      set({ error: errorMessage, isLoading: false });
+      return false;
+    }
+  },
+
+  updateDomainPlace: async (
+    companyId: string,
+    domainId: string,
+    place: string
+  ) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const token = localStorage.getItem("envoinsight_token");
+      const response = await axios.put(
+        `${API_URL}/api/companies/${companyId}/domains/place`,
+        { domainId, place },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        const updatedCompany = response.data.data;
+        set({ company: updatedCompany, isLoading: false });
+        return true;
+      }
+      return false;
+    } catch (error: unknown) {
+      const errorMessage =
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : "Failed to update domain place";
       set({ error: errorMessage, isLoading: false });
       return false;
     }

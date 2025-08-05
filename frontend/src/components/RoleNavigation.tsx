@@ -2,8 +2,9 @@ import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import useAuthStore from "@/stores/authStore";
+import { useCompanyStore } from "@/stores/companyStore";
 import { PlanSelectionModal } from "@/components/PlanSelectionModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Waves,
   LayoutDashboard,
@@ -15,15 +16,25 @@ import {
   User,
   Crown,
   CreditCard,
+  Bell,
 } from "lucide-react";
 
 export const RoleNavigation = () => {
   const { user, logout } = useAuthStore();
+  const { company, getCompanyByManagerId } = useCompanyStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   console.log("RoleNavigation - User data:", user);
+  console.log("RoleNavigation - Company data:", company);
+
+  // Fetch company data when user is a manager
+  useEffect(() => {
+    if (user && user.role === "manager") {
+      getCompanyByManagerId(user.id);
+    }
+  }, [user, getCompanyByManagerId]);
 
   if (!user) {
     console.log("RoleNavigation - No user found, returning null");
@@ -67,20 +78,20 @@ export const RoleNavigation = () => {
 
     if (user.role === "admin") {
       baseItems.push(
-        { name: "Users", path: "/dashboard/users", icon: Users },
+        { name: "Plans", path: "/dashboard/plans", icon: Crown },
         { name: "Companies", path: "/dashboard/companies", icon: Users },
         { name: "Settings", path: "/settings/customize", icon: Settings }
       );
     } else if (user.role === "manager") {
       baseItems.push(
-        { name: "Insights", path: "/insights", icon: Eye },
+        { name: "Alerts", path: "/alerts", icon: Bell },
         { name: "Settings", path: "/settings/customize", icon: Settings },
         { name: "Team", path: "/dashboard/users", icon: Users }
       );
     } else if (user.role === "staff") {
       baseItems.push(
-        { name: "Insights", path: "/insights", icon: Eye },
-        { name: "Employees", path: "/dashboard/employees", icon: Users }
+        { name: "Alerts", path: "/alerts", icon: Bell }
+        // { name: "Employees", path: "/dashboard/employees", icon: Users }
       );
     }
 
@@ -100,7 +111,7 @@ export const RoleNavigation = () => {
             <div className="flex items-center space-x-2">
               <Waves className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                EcoSnap
+                Envoinsight Ai
               </span>
             </div>
 
@@ -131,15 +142,16 @@ export const RoleNavigation = () => {
                   {user.role}
                 </span>
               </Button>
-
-              <Button
-                onClick={() => setIsPlanModalOpen(true)}
-                variant="ghost"
-                className="glass-card bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
-              >
-                <Crown className="h-4 w-4 mr-2" />
-                Plans
-              </Button>
+              {user.role === "manager" && (
+                <Button
+                  onClick={() => setIsPlanModalOpen(true)}
+                  variant="ghost"
+                  className="glass-card bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  Plans
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -148,7 +160,7 @@ export const RoleNavigation = () => {
       <PlanSelectionModal
         isOpen={isPlanModalOpen}
         onClose={() => setIsPlanModalOpen(false)}
-        currentPlan={user?.plan || "Free"}
+        currentPlan={company?.plan?.name || "Free"}
       />
     </>
   );

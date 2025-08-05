@@ -20,5 +20,6 @@ router.delete(
 
 // Domain management
 router.post("/:companyId/domains", companyControllers.addDomain);
+router.put("/:companyId/domains/place", companyControllers.updateDomainPlace);
 
 module.exports = router;

@@ -94,7 +94,7 @@ export const usePlanStore = create<PlanStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.get(`${API_URL}/api/plans/user/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -117,7 +117,7 @@ export const usePlanStore = create<PlanStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.put(
         `${API_URL}/api/plans/user/${userId}`,
         { planName },
@@ -149,7 +149,7 @@ export const usePlanStore = create<PlanStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.post(`${API_URL}/api/plans`, planData, {
         headers: {
           "Content-Type": "application/json",
@@ -181,7 +181,7 @@ export const usePlanStore = create<PlanStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.put(`${API_URL}/api/plans/${id}`, planData, {
         headers: {
           "Content-Type": "application/json",
@@ -215,7 +215,7 @@ export const usePlanStore = create<PlanStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.delete(`${API_URL}/api/plans/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -245,7 +245,7 @@ export const usePlanStore = create<PlanStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("ecosnap_token");
+      const token = localStorage.getItem("envoinsight_token");
       const response = await axios.post(
         `${API_URL}/api/plans/initialize`,
         {},

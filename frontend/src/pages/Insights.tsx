@@ -220,12 +220,12 @@ const Insights = () => {
 
               <Card className="glass-card p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold">Domain Distribution</h3>
+                  <h3 className="text-xl font-semibold">Humidity Trends</h3>
                   <PieChart className="h-6 w-6 text-purple-400" />
                 </div>
                 <div className="h-48 flex items-center justify-center border-2 border-dashed border-white/20 rounded-lg">
                   <p className="text-foreground/60">
-                    Distribution Chart Placeholder
+                    Humidity Chart Placeholder
                   </p>
                 </div>
               </Card>

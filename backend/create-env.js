@@ -3,10 +3,10 @@
 
 // const envContent = `# MongoDB Connection String
 // # For local MongoDB:
-// MONGO_URI=mongodb://localhost:27017/envosnap
+// MONGO_URI=mongodb://localhost:27017/envoinsight
 
 // # For MongoDB Atlas (replace with your connection string):
-// # MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/envosnap
+// # MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/envoinsight
 
 // # JWT Secret for token signing (change this in production)
 // JWT_SECRET=your-super-secret-jwt-key-change-this-in-production

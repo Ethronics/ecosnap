@@ -9,7 +9,7 @@ const testimonials = [
     company: "TechCorp Industries",
     image: "/placeholder.svg",
     content:
-      "EcoSnap has revolutionized how we monitor our manufacturing facilities. The AI predictions have prevented multiple safety incidents.",
+      "envoinsight has revolutionized how we monitor our manufacturing facilities. The AI predictions have prevented multiple safety incidents.",
     rating: 5,
   },
   {
@@ -48,7 +48,7 @@ export const Testimonials = () => {
           </h2>
           <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
             See what facility managers and safety professionals are saying about
-            EcoSnap
+            envoinsight
           </p>
         </motion.div>
 

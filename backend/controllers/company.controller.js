@@ -75,13 +75,29 @@ const createCompany = async (req, res) => {
         reference: savedManager._id,
       },
       employees: [],
-      domain: {
-        reference: domainId,
-      },
       domains: [
         {
           domainId: domainId,
+          name: domain.name,
+          description: domain.description,
           place: domain.name,
+          config: {
+            threshold_temp: 22,
+            threshold_humidity: 55,
+            parameters: {
+              temperature: {
+                min: 18,
+                max: 28,
+                optimal: 22,
+              },
+              humidity: {
+                min: 40,
+                max: 70,
+                optimal: 55,
+              },
+            },
+            updated_at: new Date(),
+          },
         },
         ...(domains || []),
       ],
@@ -93,7 +109,7 @@ const createCompany = async (req, res) => {
     // Populate the references for response
     const populatedCompany = await Company.findById(savedCompany._id)
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description")
+      .populate("domains.domainId", "name description")
       .populate(
         "plan",
         "name price currency period description features limits isPopular"
@@ -117,7 +133,8 @@ const getAllCompanies = async (req, res) => {
   try {
     const companies = await Company.find({})
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description")
+      .populate("employees", "name email role")
+      .populate("domains.domainId", "name description")
       .populate(
         "plan",
         "name price currency period description features limits isPopular"
@@ -142,7 +159,8 @@ const getCompanyById = async (req, res) => {
     const { id } = req.params;
     const company = await Company.findById(id)
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description");
+      .populate("employees", "name email role")
+      .populate("domains.domainId", "name description");
 
     if (!company) {
       return res.status(404).json({
@@ -174,7 +192,8 @@ const updateCompany = async (req, res) => {
       runValidators: true,
     })
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description");
+      .populate("employees", "name email role")
+      .populate("domains.domainId", "name description");
 
     if (!company) {
       return res.status(404).json({
@@ -256,7 +275,7 @@ const addEmployee = async (req, res) => {
 
     const updatedCompany = await Company.findById(companyId)
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description")
+      .populate("domains.domainId", "name description")
       .populate("employees", "name email role");
 
     res.status(200).json({
@@ -292,7 +311,7 @@ const removeEmployee = async (req, res) => {
 
     const updatedCompany = await Company.findById(companyId)
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description")
+      .populate("domains.domainId", "name description")
       .populate("employees", "name email role");
 
     res.status(200).json({
@@ -348,14 +367,34 @@ const addDomain = async (req, res) => {
     // Add domain to company's domains array
     company.domains.push({
       domainId: domainId,
+      name: domain.name,
+      description: domain.description,
       place: placeName,
+      config: {
+        threshold_temp: 22,
+        threshold_humidity: 55,
+        parameters: {
+          temperature: {
+            min: 18,
+            max: 28,
+            optimal: 22,
+          },
+          humidity: {
+            min: 40,
+            max: 70,
+            optimal: 55,
+          },
+        },
+        updated_at: new Date(),
+      },
     });
 
     await company.save();
 
     const updatedCompany = await Company.findById(companyId)
       .populate("manager.reference", "name email role")
-      .populate("domain.reference", "name description")
+      .populate("employees", "name email role")
+      .populate("domains.domainId", "name description")
       .populate(
         "plan",
         "name price currency period description features limits isPopular"
@@ -374,6 +413,63 @@ const addDomain = async (req, res) => {
   }
 };
 
+// Update domain place in company
+const updateDomainPlace = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const { domainId, place } = req.body;
+
+    if (!domainId || !place) {
+      return res.status(400).json({
+        message: "Domain ID and place are required",
+      });
+    }
+
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found",
+      });
+    }
+
+    // Find the domain in the company's domains array
+    const domainIndex = company.domains.findIndex(
+      (d) => d.domainId.toString() === domainId
+    );
+
+    if (domainIndex === -1) {
+      return res.status(404).json({
+        message: "Domain not found in this company",
+      });
+    }
+
+    // Update the place
+    company.domains[domainIndex].place = place;
+
+    await company.save();
+
+    const updatedCompany = await Company.findById(companyId)
+      .populate("manager.reference", "name email role")
+      .populate("employees", "name email role")
+      .populate("domains.domainId", "name description")
+      .populate(
+        "plan",
+        "name price currency period description features limits isPopular"
+      );
+
+    res.status(200).json({
+      message: "Domain place updated successfully",
+      data: updatedCompany,
+    });
+  } catch (error) {
+    console.error("Error updating domain place:", error);
+    res.status(500).json({
+      message: "Failed to update domain place",
+      error: error.message,
+    });
+  }
+};
+
 const companyControllers = {
   createCompany,
   getAllCompanies,
@@ -383,6 +479,7 @@ const companyControllers = {
   addEmployee,
   removeEmployee,
   addDomain,
+  updateDomainPlace,
 };
 
 module.exports = companyControllers;

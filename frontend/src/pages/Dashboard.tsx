@@ -98,7 +98,7 @@ export default function Dashboard() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
-            EcoSnap Dashboard
+            Envoinsight Ai Dashboard
           </h1>
           <p className="text-muted-foreground text-lg">
             Connect your sensors or upload data to monitor environmental

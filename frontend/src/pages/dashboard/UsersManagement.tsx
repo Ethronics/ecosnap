@@ -54,16 +54,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface User {
-  id?: string;
-  _id?: string;
+  _id: string;
   name: string;
   email: string;
   role: string;
-  created_at: string;
 }
 
 export default function UsersManagement() {
-  const { users, getUsers, createUser, isLoading } = useUserStore();
+  const { createUser, isLoading } = useUserStore();
   const { company, getCompanyByManagerId } = useCompanyStore();
   const { user } = useAuthStore();
   const { toast } = useToast();
@@ -87,28 +85,8 @@ export default function UsersManagement() {
     }
   }, [user?.id, getCompanyByManagerId]);
 
-  // Get all users
-  useEffect(() => {
-    getUsers();
-  }, [getUsers]);
-
   // Filter users to show only those from the manager's company
-  const companyUsers = users.filter((user) => {
-    const userId = user.id || user._id;
-    const isInCompany = company?.employees?.some(
-      (employee) => employee._id === userId
-    );
-    console.log("User filtering:", {
-      userName: user.name,
-      userId,
-      companyEmployees: company?.employees?.map((e) => ({
-        id: e._id,
-        name: e.name,
-      })),
-      isInCompany,
-    });
-    return isInCompany;
-  });
+  const companyUsers = company?.employees || [];
 
   const filteredUsers = companyUsers.filter((user) => {
     const matchesSearch =
@@ -118,13 +96,12 @@ export default function UsersManagement() {
   });
 
   const handleRefresh = async () => {
-    await getUsers();
     if (user?.id) {
       await getCompanyByManagerId(user.id);
     }
     console.log("Refreshed data:", {
-      users: users.length,
       company: company?.companyName,
+      employees: company?.employees?.length,
     });
   };
 
@@ -157,7 +134,6 @@ export default function UsersManagement() {
         console.log("User created successfully, refreshing data...");
         await handleRefresh();
         console.log("After refresh:", {
-          users: users.length,
           companyEmployees: company?.employees?.length,
         });
       } else {
@@ -381,10 +357,7 @@ export default function UsersManagement() {
                       </TableRow>
                     ) : (
                       filteredUsers.map((user) => (
-                        <TableRow
-                          key={user.id || user._id}
-                          className="hover:bg-white/5"
-                        >
+                        <TableRow key={user._id} className="hover:bg-white/5">
                           <TableCell>
                             <div className="flex items-center space-x-3">
                               <User className="h-8 w-8 text-blue-400" />
@@ -393,7 +366,7 @@ export default function UsersManagement() {
                                   {user.name}
                                 </div>
                                 <div className="text-sm text-foreground/70">
-                                  ID: {(user.id || user._id)?.slice(-8)}
+                                  ID: {user._id?.slice(-8)}
                                 </div>
                               </div>
                             </div>
@@ -418,9 +391,7 @@ export default function UsersManagement() {
                           <TableCell>
                             <div className="flex items-center space-x-2">
                               <Calendar className="h-4 w-4 text-orange-400" />
-                              <span className="text-foreground">
-                                {formatDate(user.created_at)}
-                              </span>
+                              <span className="text-foreground">N/A</span>
                             </div>
                           </TableCell>
                           <TableCell>
