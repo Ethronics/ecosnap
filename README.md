@@ -19,7 +19,7 @@ Envoinsight AI is a comprehensive environmental monitoring system that provides 
 - AI-powered environmental safety predictions
 - Interactive dashboards with charts and insights
 
-### 🔔 Smart Alerting System
+### 🔔 Smart Alerting System 
 
 - Customizable temperature and humidity thresholds
 - Intelligent alert notifications
