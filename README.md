@@ -1,8 +1,8 @@
-# EnvoSnap 🌡️💧
+# EnvoInsight Ai 🌡️💧
 
 **Smart Environmental Monitoring & Analytics Platform**
 
-EnvoSnap is a comprehensive environmental monitoring system that provides real-time temperature and humidity tracking with AI-powered predictive analytics. The platform enables organizations to monitor environmental conditions across multiple domains, set custom thresholds, and receive intelligent alerts for safety and compliance.
+EnvoInsight Ai is a comprehensive environmental monitoring system that provides real-time temperature and humidity tracking with AI-powered predictive analytics. The platform enables organizations to monitor environmental conditions across multiple domains, set custom thresholds, and receive intelligent alerts for safety and compliance.
 
 ## ✨ Features
 
@@ -19,7 +19,7 @@ EnvoSnap is a comprehensive environmental monitoring system that provides real-t
 - AI-powered environmental safety predictions
 - Interactive dashboards with charts and insights
 
-### 🔔 Smart Alerting System 
+### 🔔 Smart Alerting System
 
 - Customizable temperature and humidity thresholds
 - Intelligent alert notifications
