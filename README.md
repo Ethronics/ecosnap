@@ -149,7 +149,7 @@ EnvoInsight Ai is a comprehensive environmental monitoring system that provides 
 ecosnap/
 ├── backend/                 # Node.js/Express backend
 │   ├── Auth/               # Authentication logic
-│   ├── config/             # Database configuration
+│   ├─ config/             # Database configuration
 │   ├── controllers/        # Route controllers
 │   ├── middleware/         # Express middleware
 │   ├── models/             # Mongoose models

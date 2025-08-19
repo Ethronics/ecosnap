@@ -30,9 +30,38 @@ app.use("/api/domain", require("./routes/domain.routes.js"));
 app.use("/api/config", require("./routes/config.routes.js"));
 app.use("/api/companies", require("./routes/company.route.js"));
 app.use("/api/plans", require("./routes/plan.routes.js"));
+app.use("/api/sensors", require("./routes/sensor.routes.js"));
 
 const connectDB = require("./config/db");
 connectDB();
 
 const PORT = process.env.PORT || 4040;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+
+// Initialize sensor service with WebSocket and MQTT
+const sensorService = require("./services/sensorService");
+
+// Initialize WebSocket server
+sensorService.initializeWebSocket(server);
+
+// Connect to MQTT broker
+sensorService.connectToMQTT();
+
+// Graceful shutdown
+process.on("SIGINT", () => {
+  console.log("Shutting down gracefully...");
+  sensorService.disconnect();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
+});
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully...");
+  sensorService.disconnect();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
+});

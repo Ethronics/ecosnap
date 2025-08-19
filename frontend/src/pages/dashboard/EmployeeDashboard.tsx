@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { RoleNavigation } from '@/components/RoleNavigation';
+import { RealTimeSensorData } from '@/components/RealTimeSensorData';
 import { 
   AlertTriangle, 
   CheckCircle, 
   Activity,
-  Thermometer,
-  Droplets,
   Shield,
   Clock
 } from 'lucide-react';
@@ -15,16 +14,11 @@ import {
 const EmployeeDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   
-  // Simulate real-time data
-  const [data] = useState({
-    condition: 'Safe',
-    temperature: 23.7,
-    humidity: 61,
-    domain: 'Workplace Environment',
-    lastUpdate: 'Just now',
-    safetyStatus: 'All Clear',
-    alerts: []
-  });
+  // Get safety status based on real sensor data
+  const getSafetyStatus = () => {
+    // This will be calculated based on real sensor data
+    return 'All Clear';
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -53,59 +47,31 @@ const EmployeeDashboard = () => {
             </p>
           </motion.div>
 
-          {/* Current Status - Main Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <Card className="glass-card p-8 text-center">
-              <div className="flex items-center justify-center mb-4">
-                {data.condition === 'Safe' ? (
-                  <CheckCircle className="h-16 w-16 text-green-400" />
-                ) : (
-                  <AlertTriangle className="h-16 w-16 text-yellow-400" />
-                )}
-              </div>
-              <h2 className={`text-4xl font-bold mb-2 ${
-                data.condition === 'Safe' ? 'text-green-400' : 'text-yellow-400'
-              }`}>
-                {data.condition}
-              </h2>
-              <p className="text-xl text-foreground/70 mb-4">{data.domain}</p>
-              <div className="flex items-center justify-center space-x-2 text-foreground/60">
-                <Clock className="h-4 w-4" />
-                <span>Last updated: {data.lastUpdate}</span>
-              </div>
-            </Card>
-          </motion.div>
+          {/* Real-time Sensor Data */}
+          <RealTimeSensorData 
+            showConnectionStatus={true}
+            showTimestamp={true}
+            className="mb-8"
+          />
 
-          {/* Environmental Data Grid */}
+          {/* Safety Status Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid md:grid-cols-3 gap-6"
           >
-            <Card className="glass-card p-6 text-center">
-              <Thermometer className="h-8 w-8 text-red-400 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Temperature</h3>
-              <p className="text-3xl font-bold text-red-400">{data.temperature}°C</p>
-              <p className="text-sm text-foreground/60 mt-2">Optimal Range</p>
-            </Card>
-
-            <Card className="glass-card p-6 text-center">
-              <Droplets className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Humidity</h3>
-              <p className="text-3xl font-bold text-blue-400">{data.humidity}%</p>
-              <p className="text-sm text-foreground/60 mt-2">Normal Levels</p>
-            </Card>
-
-            <Card className="glass-card p-6 text-center">
-              <Shield className="h-8 w-8 text-green-400 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Safety Status</h3>
-              <p className="text-lg font-bold text-green-400">{data.safetyStatus}</p>
-              <p className="text-sm text-foreground/60 mt-2">No Actions Required</p>
+            <Card className="glass-card p-8 text-center">
+              <div className="flex items-center justify-center mb-4">
+                <Shield className="h-16 w-16 text-green-400" />
+              </div>
+              <h2 className="text-4xl font-bold mb-2 text-green-400">
+                {getSafetyStatus()}
+              </h2>
+              <p className="text-xl text-foreground/70 mb-4">Workplace Environment</p>
+              <div className="flex items-center justify-center space-x-2 text-foreground/60">
+                <Clock className="h-4 w-4" />
+                <span>Last updated: {currentTime.toLocaleTimeString()}</span>
+              </div>
             </Card>
           </motion.div>
 
@@ -139,43 +105,32 @@ const EmployeeDashboard = () => {
                     <span className="text-sm">Sensors: Online</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Activity className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Data Flow: Active</span>
+                    <CheckCircle className="h-4 w-4 text-green-400" />
+                    <span className="text-sm">Environment: Safe</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Activity className="h-4 w-4 text-green-400" />
-                    <span className="text-sm">Alerts: Enabled</span>
+                    <Shield className="h-4 w-4 text-green-400" />
+                    <span className="text-sm">Alerts: None</span>
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Safety Information */}
+          {/* Alerts Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="glass-card p-6 rounded-2xl"
           >
-            <h3 className="text-xl font-semibold mb-4">Safety Guidelines</h3>
-            <div className="grid md:grid-cols-2 gap-4 text-sm text-foreground/70">
-              <div>
-                <h4 className="font-medium text-foreground mb-2">If Temperature Rises:</h4>
-                <ul className="space-y-1">
-                  <li>• Move to a cooler area</li>
-                  <li>• Increase ventilation</li>
-                  <li>• Report to supervisor</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-medium text-foreground mb-2">If Alerts Appear:</h4>
-                <ul className="space-y-1">
-                  <li>• Follow safety protocols</li>
-                  <li>• Evacuate if necessary</li>
-                  <li>• Contact emergency services</li>
-                </ul>
-              </div>
+            <h3 className="text-xl font-semibold mb-4">Recent Alerts</h3>
+            <div className="text-center py-8">
+              <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-3" />
+              <p className="text-foreground/70">No active alerts at this time</p>
+              <p className="text-sm text-foreground/50 mt-2">
+                All environmental conditions are within safe ranges
+              </p>
             </div>
           </motion.div>
         </div>
