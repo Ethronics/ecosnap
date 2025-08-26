@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import useAuthStore from "@/stores/authStore";
 import { useCompanyStore } from "@/stores/companyStore";
 import { usePlanStore } from "@/stores/planStore";
+import useSensorStore from "@/stores/sensorStore";
 import {
   Upload,
   Link as LinkIcon,
@@ -88,6 +89,17 @@ const ManagerDashboard = () => {
     getCompanyByManagerId,
   } = useCompanyStore();
   const { getPlanById } = usePlanStore();
+  
+  // Sensor store for real-time data
+  const {
+    sensorData,
+    connectionStatus,
+    isConnected,
+    connectWebSocket,
+    disconnectWebSocket,
+    fetchCurrentData,
+    fetchConnectionStatus
+  } = useSensorStore();
 
   // Fetch company data when component mounts
   useEffect(() => {
@@ -106,6 +118,25 @@ const ManagerDashboard = () => {
       fetchPlanDetails();
     }
   }, [company?.plan?._id, getPlanById]);
+
+  // Connect to sensor WebSocket when component mounts
+  useEffect(() => {
+    connectWebSocket();
+    
+    // Fetch initial data
+    fetchCurrentData();
+    fetchConnectionStatus();
+    
+    // Set up periodic status checks
+    const statusInterval = setInterval(() => {
+      fetchConnectionStatus();
+    }, 10000); // Check every 10 seconds
+    
+    return () => {
+      clearInterval(statusInterval);
+      disconnectWebSocket();
+    };
+  }, [connectWebSocket, disconnectWebSocket, fetchCurrentData, fetchConnectionStatus]);
 
   const handleConnect = async (domainPlace: string) => {
     const apiEndpoint = apiEndpoints[domainPlace];
@@ -609,10 +640,16 @@ const ManagerDashboard = () => {
                     <Thermometer className="h-6 w-6 text-red-400" />
                   </div>
                   <p className="text-3xl font-bold text-red-400">
-                    {data.temperature}°C
+                    {sensorData.temperature !== "N/A" 
+                      ? `${sensorData.temperature}°C` 
+                      : `${data.temperature}°C`
+                    }
                   </p>
                   <p className="text-foreground/70 mt-2">
-                    {data.temperature > 25 ? "Above optimal" : "Optimal range"}
+                    {sensorData.temperature !== "N/A" 
+                      ? (parseFloat(sensorData.temperature as string) > 25 ? "Above optimal" : "Optimal range")
+                      : (data.temperature > 25 ? "Above optimal" : "Optimal range")
+                    }
                   </p>
                 </Card>
 
@@ -622,10 +659,16 @@ const ManagerDashboard = () => {
                     <Droplets className="h-6 w-6 text-blue-400" />
                   </div>
                   <p className="text-3xl font-bold text-blue-400">
-                    {data.humidity}%
+                    {sensorData.humidity !== "N/A" 
+                      ? `${sensorData.humidity}%` 
+                      : `${data.humidity}%`
+                    }
                   </p>
                   <p className="text-foreground/70 mt-2">
-                    {data.humidity > 70 ? "High humidity" : "Normal levels"}
+                    {sensorData.humidity !== "N/A" 
+                      ? (parseFloat(sensorData.humidity as string) > 70 ? "High humidity" : "Normal levels")
+                      : (data.humidity > 70 ? "High humidity" : "Normal levels")
+                    }
                   </p>
                 </Card>
 

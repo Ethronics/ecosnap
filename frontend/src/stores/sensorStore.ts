@@ -60,9 +60,13 @@ const useSensorStore = create<SensorState>((set, get) => ({
     }
 
     // Create new WebSocket connection
-    const wsUrl = window.location.hostname === "localhost" 
-      ? "ws://localhost:4040" 
-      : `ws://${window.location.hostname}:4040`;
+    const isHttps = window.location.protocol === "https:";
+    const protocol = isHttps ? "wss" : "ws";
+    const host = window.location.hostname;
+    const port = 4040; // Backend/WebSocket server port
+    const wsUrl = host === "localhost"
+      ? `${protocol}://localhost:${port}`
+      : `${protocol}://${host}:${port}`;
     
     const newWs = new WebSocket(wsUrl);
 
