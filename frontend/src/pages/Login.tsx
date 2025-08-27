@@ -37,6 +37,23 @@ const Login = () => {
     console.log("Login result:", success);
 
     if (success) {
+      // Check if there's a pending payment
+      const pendingPaymentPlan = localStorage.getItem("pending_payment_plan");
+
+      if (pendingPaymentPlan) {
+        // Clear the pending payment plan
+        localStorage.removeItem("pending_payment_plan");
+
+        toast({
+          title: "Welcome back!",
+          description: "Please complete your payment to activate your account.",
+        });
+
+        // Redirect to payment page
+        navigate(`/payment?plan=${pendingPaymentPlan}`);
+        return;
+      }
+
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -50,8 +67,9 @@ const Login = () => {
         console.log("Navigating to:", `/dashboard/${user.role}`);
         navigate(`/dashboard/${user.role}`);
       } else {
-        console.log("Navigating to: /dashboard");
-        navigate("/dashboard");
+        // Fallback to manager dashboard if role is not available
+        console.log("Role not available, navigating to manager dashboard");
+        navigate("/dashboard/manager");
       }
     } else {
       const currentError = useAuthStore.getState().error;

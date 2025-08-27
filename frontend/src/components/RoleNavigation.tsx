@@ -17,6 +17,7 @@ import {
   Crown,
   CreditCard,
   Bell,
+  DollarSign,
 } from "lucide-react";
 
 export const RoleNavigation = () => {
@@ -78,9 +79,10 @@ export const RoleNavigation = () => {
 
     if (user.role === "admin") {
       baseItems.push(
-        { name: "Plans", path: "/dashboard/plans", icon: Crown },
+        // { name: "Plans", path: "/dashboard/plans", icon: Crown },
         { name: "Companies", path: "/dashboard/companies", icon: Users },
-        { name: "Settings", path: "/settings/customize", icon: Settings }
+        { name: "Payments", path: "/payments", icon: DollarSign }
+        // { name: "Settings", path: "/settings/customize", icon: Settings }
       );
     } else if (user.role === "manager") {
       baseItems.push(
