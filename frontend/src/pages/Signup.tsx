@@ -57,6 +57,22 @@ const Signup = () => {
 
   const { domains, getDomains, isLoading: domainLoading } = useDomainStore();
 
+  // Helper function to get selected plan name
+  const getSelectedPlanName = () => {
+    return (
+      selectedPlan ||
+      plans
+        .find((p) => p._id === formData.selectedPlanId)
+        ?.name.toLowerCase() ||
+      "free"
+    );
+  };
+
+  // Helper function to check if selected plan is free
+  const isSelectedPlanFree = () => {
+    return getSelectedPlanName() === "free";
+  };
+
   // Fetch domains and plans from the database
   useEffect(() => {
     getDomains();
@@ -126,19 +142,28 @@ const Signup = () => {
     const result = await signup(signupData);
 
     if (result.success) {
-      toast({
-        title: "Welcome to envoinsight!",
-        description:
-          "Your company and manager account have been created successfully. Please complete your payment to activate your account.",
-      });
-      // Redirect to payment page with the selected plan
-      const planToUse =
-        selectedPlan ||
-        plans
-          .find((p) => p._id === formData.selectedPlanId)
-          ?.name.toLowerCase() ||
-        "free";
-      navigate(`/payment?plan=${planToUse}`);
+      const selectedPlanName = getSelectedPlanName();
+      const isFreePlan = isSelectedPlanFree();
+
+      if (isFreePlan) {
+        toast({
+          title: "Welcome to envoinsight!",
+          description:
+            "Your company and manager account have been created successfully. You can now log in to your dashboard.",
+        });
+        // Redirect to login for free plans
+        navigate("/login");
+      } else {
+        // Store the selected plan for payment after login
+        localStorage.setItem("pending_payment_plan", selectedPlanName);
+        toast({
+          title: "Welcome to envoinsight!",
+          description:
+            "Your company and manager account have been created successfully. Please log in to complete your payment.",
+        });
+        // Redirect to login first, then user will be redirected to payment
+        navigate("/login");
+      }
     } else {
       toast({
         title: "Signup failed",
@@ -482,8 +507,23 @@ const Signup = () => {
               className="w-full bg-primary/80 hover:bg-primary text-white backdrop-blur-sm py-6 text-lg"
               disabled={isLoading || domainLoading}
             >
-              {isLoading ? "Creating company..." : "Create Company & Manager"}
+              {isLoading
+                ? "Creating company..."
+                : isSelectedPlanFree()
+                ? "Create Company & Manager"
+                : "Create Company & Continue to Payment"}
             </Button>
+
+            {/* Plan-specific information */}
+            {!isLoading && (
+              <div className="text-center mt-4">
+                <p className="text-sm text-foreground/60">
+                  {isSelectedPlanFree()
+                    ? "Free plan: Your account will be activated immediately after signup."
+                    : "Paid plan: You'll be redirected to login, then to payment after signup."}
+                </p>
+              </div>
+            )}
           </form>
 
           <div className="text-center mt-6">

@@ -55,12 +55,15 @@ export const usePlanStore = create<PlanStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
+      console.log("Fetching plans from:", `${API_URL}/api/plans`);
       const response = await axios.get(`${API_URL}/api/plans`);
 
       if (response.status === 200) {
+        console.log("Plans API response:", response.data);
         set({ plans: response.data.data, isLoading: false });
       }
     } catch (error) {
+      console.error("Plans API error:", error);
       const axiosError = error as AxiosError;
       const errorMessage =
         (axiosError.response?.data as { message?: string })?.message ||

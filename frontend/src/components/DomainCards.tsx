@@ -15,6 +15,8 @@ const domains = [
     name: "Agriculture",
     icon: Wheat,
     description: "Optimize crop conditions and soil health monitoring",
+    detailedDescription:
+      "Monitor soil moisture, temperature, and humidity to maximize crop yields. Track environmental conditions for optimal plant growth and implement smart irrigation systems.",
     color: "green",
   },
   {
@@ -22,6 +24,8 @@ const domains = [
     name: "Office",
     icon: Building,
     description: "Maintain comfortable workplace environments",
+    detailedDescription:
+      "Ensure optimal air quality, temperature, and humidity levels for employee productivity and well-being. Monitor CO2 levels and implement smart HVAC controls.",
     color: "blue",
   },
   {
@@ -29,6 +33,8 @@ const domains = [
     name: "School",
     icon: GraduationCap,
     description: "Ensure optimal learning environment conditions",
+    detailedDescription:
+      "Create ideal learning environments with proper ventilation, temperature control, and air quality monitoring. Support student health and academic performance.",
     color: "purple",
   },
   {
@@ -36,6 +42,8 @@ const domains = [
     name: "Medical",
     icon: Heart,
     description: "Critical monitoring for healthcare facilities",
+    detailedDescription:
+      "Maintain sterile environments with precise temperature and humidity control. Monitor air quality for patient safety and regulatory compliance in hospitals and clinics.",
     color: "red",
   },
   {
@@ -43,6 +51,8 @@ const domains = [
     name: "Factory",
     icon: Factory,
     description: "Industrial environment safety and efficiency",
+    detailedDescription:
+      "Monitor air quality, temperature, and humidity for worker safety and equipment efficiency. Track environmental compliance and optimize production conditions.",
     color: "yellow",
   },
   {
@@ -50,6 +60,8 @@ const domains = [
     name: "Lab",
     icon: Beaker,
     description: "Precise environmental control for research",
+    detailedDescription:
+      "Maintain precise temperature, humidity, and air quality standards for sensitive research and experiments. Ensure data integrity and equipment protection.",
     color: "blue",
   },
 ];
@@ -121,7 +133,7 @@ export const DomainCards = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
-              className="glass-card p-8 rounded-2xl cursor-pointer group transition-shadow duration-500"
+              className="glass-card p-8 rounded-2xl cursor-pointer group transition-shadow duration-500 relative"
               onMouseEnter={() => {
                 setHoveredDomain(domain.id);
                 changeTheme(domain.id);
@@ -146,6 +158,25 @@ export const DomainCards = () => {
                 <p className="text-foreground/70 group-hover:text-foreground/90 transition-colors">
                   {domain.description}
                 </p>
+
+                {/* Hover Description Overlay */}
+                {hoveredDomain === domain.id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute inset-0 bg-background/95 backdrop-blur-sm rounded-2xl p-6 flex items-center justify-center z-10"
+                  >
+                    <div className="text-center">
+                      <h4 className="text-xl font-semibold mb-3 text-foreground">
+                        {domain.name}
+                      </h4>
+                      <p className="text-sm text-foreground/80 leading-relaxed">
+                        {domain.detailedDescription}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           ))}
