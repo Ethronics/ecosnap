@@ -25,6 +25,12 @@ export const Navigation = () => {
           </Link>
 
           <div className="flex items-center space-x-4">
+            <Link to="/faq">
+              <Button variant="ghost" className="glass-card hover:bg-white/20">
+                FAQ
+              </Button>
+            </Link>
+
             {/* <Link to="/">
               <Button variant="ghost" className="glass-card hover:bg-white/20">
                 Home

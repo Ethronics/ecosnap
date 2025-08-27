@@ -34,6 +34,7 @@ interface AuthState {
       password: string;
     };
   }) => Promise<{ success: boolean; message: string }>;
+  updateProfile: (data: { name?: string; email?: string }) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
 }
 
@@ -141,6 +142,44 @@ const useAuthStore = create<AuthState>((set) => ({
           ? e.response.data.message
           : "Company creation failed";
       set({ error: message });
+      return { success: false, message };
+    }
+  },
+
+  updateProfile: async (data) => {
+    try {
+      // Read current user from store/localStorage
+      const storedUserRaw = typeof window !== "undefined" ? localStorage.getItem("envoinsight_user") : null;
+      const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+      const userId: string | undefined = storedUser?.id || storedUser?._id;
+      if (!userId) {
+        return { success: false, message: "No authenticated user found" };
+      }
+
+      const token = typeof window !== "undefined" ? localStorage.getItem("envoinsight_token") : null;
+      const response = await axios.put(
+        `${API_URL}/api/users/${userId}`,
+        data,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      );
+
+      if (response.status === 200) {
+        const updatedUser = response.data.data as User & { _id?: string };
+        const normalized = { ...updatedUser, id: (updatedUser as any).id || updatedUser._id } as User;
+        if (typeof window !== "undefined") {
+          localStorage.setItem("envoinsight_user", JSON.stringify(normalized));
+        }
+        set({ user: normalized });
+        return { success: true, message: "Profile updated successfully" };
+      }
+      return { success: false, message: "Failed to update profile" };
+    } catch (e: unknown) {
+      const message =
+        axios.isAxiosError(e) && e.response?.data?.message
+          ? e.response.data.message
+          : "Failed to update profile";
       return { success: false, message };
     }
   },

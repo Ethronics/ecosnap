@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import {
   Waves,
@@ -46,6 +47,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signup, error, signupSuccess, resetSignupSuccess } = useAuthStore();
@@ -86,6 +88,16 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!acceptTerms) {
+      toast({
+        title: "Accept Terms Required",
+        description:
+          "You must agree to the Terms of Service and Privacy Policy to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (formData.managerPassword !== formData.confirmPassword) {
       toast({
@@ -156,9 +168,9 @@ const Signup = () => {
       } else {
         // Store the selected plan for payment after login
         localStorage.setItem("pending_payment_plan", selectedPlanName);
-        toast({
+      toast({
           title: "Welcome to envoinsight!",
-          description:
+        description:
             "Your company and manager account have been created successfully. Please log in to complete your payment.",
         });
         // Redirect to login first, then user will be redirected to payment
@@ -248,6 +260,8 @@ const Signup = () => {
                     id="domainId"
                     value={formData.domainId}
                     onChange={handleInputChange("domainId")}
+                    aria-label="Select domain"
+                    title="Select domain"
                     className="w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent appearance-none"
                     required
                     disabled={domainLoading}
@@ -499,6 +513,28 @@ const Signup = () => {
                     )}
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Terms of Service & Privacy Policy */}
+            <div className="space-y-2">
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="acceptTerms"
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(Boolean(checked))}
+                />
+                <Label htmlFor="acceptTerms" className="text-foreground/80">
+                  I agree to the {" "}
+                  <Link to="/terms-of-service" className="text-primary hover:text-accent">
+                    Terms of Service
+                  </Link>{" "}
+                  and {" "}
+                  <Link to="/privacy-policy" className="text-primary hover:text-accent">
+                    Privacy Policy
+                  </Link>
+                  .
+                </Label>
               </div>
             </div>
 
