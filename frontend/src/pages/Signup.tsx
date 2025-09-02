@@ -380,6 +380,8 @@ const Signup = () => {
                       return (
                         <div
                           key={plan._id}
+
+                    
                           className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             formData.selectedPlanId === plan._id
                               ? "border-primary bg-primary/10"
