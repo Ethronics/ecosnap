@@ -1,4 +1,6 @@
+
 import { useEffect, useMemo, useState } from "react";
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,6 +9,7 @@ import UserSelectionModal from "@/components/UserSelectionModal";
 import useAuthStore from "@/stores/authStore";
 import { useCompanyStore } from "@/stores/companyStore";
 import { useToast } from "@/hooks/use-toast";
+
 import { useAlertStore, type BackendAlert } from "@/stores/alertStore";
 import {
   Bell,
@@ -19,17 +22,22 @@ import {
   Settings,
 } from "lucide-react";
 
+
 const Alerts = () => {
+
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<BackendAlert | null>(null);
 
   const { user } = useAuthStore();
+
   const {
     company,
     isLoading: companyLoading,
     getCompanyByManagerId,
     getCompanyByEmployeeId,
   } = useCompanyStore();
+
   const { toast } = useToast();
   const {
     alerts,
@@ -63,7 +71,9 @@ const Alerts = () => {
     }
   }, [alertsError, toast, clearError]);
 
+
   const getSeverityColor = (severity: BackendAlert["severity"]) => {
+
     switch (severity) {
       case "low":
         return "text-blue-400 border-blue-400/30 bg-blue-400/10";
@@ -115,6 +125,7 @@ const Alerts = () => {
 
   const handleNotifyUsers = async (selectedUserIds: string[]) => {
     if (!selectedAlert) return;
+
     const ok = await acknowledgeAlert(selectedAlert._id);
     if (ok) {
       toast({
@@ -123,17 +134,20 @@ const Alerts = () => {
           selectedUserIds.length !== 1 ? "s" : ""
         }.`,
       });
+
     }
   };
 
   const handleFixed = async (alertId: string) => {
+
     await resolveAlert(alertId);
+
   };
 
   const isLoading = useMemo(() => companyLoading || alertsLoading, [companyLoading, alertsLoading]);
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <RoleNavigation />
       <div className="pt-32 px-4 pb-8">
         <div className="max-w-6xl mx-auto space-y-8">

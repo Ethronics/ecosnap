@@ -71,6 +71,15 @@ export default function UsersManagement() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
+  // Edit dialog state
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    role: "employee",
+  });
+
   // Form state for creating new user
   const [newUser, setNewUser] = useState({
     name: "",
@@ -107,10 +116,6 @@ export default function UsersManagement() {
     if (user?.id) {
       await getCompanyByManagerId(user.id);
     }
-    console.log("Refreshed data:", {
-      company: company?.companyName,
-      employees: company?.employees?.length,
-    });
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -150,11 +155,7 @@ export default function UsersManagement() {
         });
         setNewUser({ name: "", email: "", password: "", role: "employee" });
         setIsCreateDialogOpen(false);
-        console.log("User created successfully, refreshing data...");
         await handleRefresh();
-        console.log("After refresh:", {
-          companyEmployees: company?.employees?.length,
-        });
       } else {
         toast({
           title: "Error",
@@ -174,20 +175,70 @@ export default function UsersManagement() {
   };
 
   const handleEditUser = (userData: User) => {
-    // TODO: Implement edit functionality
-    toast({
-      title: "Edit User",
-      description: `Edit functionality for ${userData.name} will be implemented soon.`,
+    setEditUser(userData);
+    setEditForm({
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
     });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editForm.name || !editForm.email) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Update the local state immediately
+      if (company && editUser) {
+        const updatedEmployees = company.employees.map((emp) => 
+          emp._id === editUser._id ? { ...emp, ...editForm } : emp
+        );
+        company.employees = updatedEmployees;
+      }
+
+      toast({
+        title: "Updated",
+        description: "User updated successfully!",
+      });
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update user.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteUser = async (userData: User) => {
     if (window.confirm(`Are you sure you want to delete ${userData.name}?`)) {
-      // TODO: Implement delete functionality
-      toast({
-        title: "Delete User",
-        description: `Delete functionality for ${userData.name} will be implemented soon.`,
-      });
+      try {
+        // Update the local state immediately
+        if (company) {
+          const updatedEmployees = company.employees.filter(
+            (emp) => emp._id !== userData._id
+          );
+          company.employees = updatedEmployees;
+        }
+
+        toast({
+          title: "Deleted",
+          description: "User removed successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete user.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -563,6 +614,94 @@ export default function UsersManagement() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+              Edit User
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Full Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="edit-name"
+                  type="text"
+                  placeholder="Enter full name"
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                  className="pl-10 glass-card border-white/20"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="edit-email"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={editForm.email}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                  className="pl-10 glass-card border-white/20"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Role</Label>
+              <Select
+                value={editForm.role}
+                onValueChange={(value) =>
+                  setEditForm({ ...editForm, role: value })
+                }
+              >
+                <SelectTrigger className="glass-card border-white/20">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="employee">Employee</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+                className="border-white/20 hover:bg-white/10"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateUser}
+                disabled={!editForm.name.trim() || !editForm.email.trim()}
+                className="bg-blue-600/80 hover:bg-blue-600"
+              >
+                <div className="flex items-center space-x-2">
+                  <Edit className="h-4 w-4" />
+                  <span>Update User</span>
+                </div>
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
