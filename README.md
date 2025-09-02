@@ -1,8 +1,8 @@
-# Envoinsight AI 🌡️💧
+# EnvoInsight Ai 🌡️💧
 
-**Smart Environmental Sensing with AI**
+**Smart Environmental Monitoring & Analytics Platform**
 
-Envoinsight AI is a comprehensive environmental monitoring system that provides real-time temperature and humidity tracking with AI-powered predictive analytics. The platform enables organizations to monitor environmental conditions across multiple domains, set custom thresholds, and receive intelligent alerts for safety and compliance.
+EnvoInsight Ai is a comprehensive environmental monitoring system that provides real-time temperature and humidity tracking with AI-powered predictive analytics. The platform enables organizations to monitor environmental conditions across multiple domains, set custom thresholds, and receive intelligent alerts for safety and compliance.
 
 ## ✨ Features
 
@@ -10,7 +10,7 @@ Envoinsight AI is a comprehensive environmental monitoring system that provides 
 
 - Monitor environmental conditions across multiple domains/locations
 - Custom domain configuration and management
-- Role-based access control (Manager, Staff, Employee)
+- Role-based access control (Admin, Manager, Staff, Employee)
 
 ### 📊 Real-Time Analytics
 
@@ -32,6 +32,7 @@ Envoinsight AI is a comprehensive environmental monitoring system that provides 
 - User authentication and authorization
 - Profile management
 - Employee and user administration
+- Company management system
 
 ### 🎨 Modern UI/UX
 
@@ -52,9 +53,12 @@ Envoinsight AI is a comprehensive environmental monitoring system that provides 
 - **Framer Motion** - Animation library
 - **React Router** - Client-side routing
 - **Zustand** - State management
-- **React Query** - Server state management
+- **TanStack Query** - Server state management
 - **React Hook Form** - Form handling
 - **Zod** - Schema validation
+- **Recharts** - Data visualization
+- **Lucide React** - Icon library
+- **Sonner** - Toast notifications
 
 ### Backend
 
@@ -66,6 +70,9 @@ Envoinsight AI is a comprehensive environmental monitoring system that provides 
 - **bcrypt** - Password hashing
 - **Helmet** - Security middleware
 - **CORS** - Cross-origin resource sharing
+- **InfluxDB Client** - Time-series data storage
+- **Express Rate Limit** - API rate limiting
+- **Express Validator** - Input validation
 
 ## 🚀 Quick Start
 
@@ -109,7 +116,14 @@ Envoinsight AI is a comprehensive environmental monitoring system that provides 
    JWT_SECRET=your_jwt_secret_here
    ```
 
-5. **Start the development servers**
+5. **Initialize the database**
+
+   ```bash
+   cd backend
+   npm run init-plans
+   ```
+
+6. **Start the development servers**
 
    **Backend**
 
@@ -125,7 +139,7 @@ Envoinsight AI is a comprehensive environmental monitoring system that provides 
    npm run dev
    ```
 
-6. **Access the application**
+7. **Access the application**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:4040
 
@@ -144,19 +158,25 @@ ecosnap/
 ├── frontend/               # React frontend
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
+│   │   │   ├── auth/       # Authentication components
+│   │   │   ├── layout/     # Layout components
+│   │   │   └── ui/         # UI primitives (Radix UI)
 │   │   ├── pages/          # Page components
+│   │   │   └── dashboard/  # Dashboard pages by role
 │   │   ├── stores/         # Zustand state stores
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── contexts/       # React contexts
+│   │   ├── config/         # Configuration files
 │   │   └── lib/            # Utility functions
 │   └── public/             # Static assets
 ```
 
 ## 🔐 Authentication & Roles
 
-The application supports three user roles:
+The application supports four user roles with different access levels:
 
-- **Manager**: Full access to all features, user management, and system configuration
+- **Admin**: Full system access, user management, company management, and system configuration
+- **Manager**: Access to monitoring, alerts, employee management, and domain configuration
 - **Staff**: Access to monitoring, alerts, and basic management features
 - **Employee**: Basic access to view environmental data and receive alerts
 
@@ -187,6 +207,24 @@ The application supports three user roles:
 - `POST /api/config/create` - Create configuration
 - `PUT /api/config/:id` - Update configuration
 
+### Companies
+
+- `GET /api/companies/all` - Get all companies
+- `POST /api/companies/create` - Create new company
+- `PUT /api/companies/:id` - Update company
+- `DELETE /api/companies/:id` - Delete company
+
+### Plans
+
+- `GET /api/plans/all` - Get all plans
+- `POST /api/plans/create` - Create new plan
+- `PUT /api/plans/:id` - Update plan
+- `DELETE /api/plans/:id` - Delete plan
+
+### Health Check
+
+- `GET /api/health` - Backend health status
+
 ## 🎯 Key Features in Detail
 
 ### Environmental Monitoring
@@ -195,6 +233,7 @@ The application supports three user roles:
 - Multi-domain support for different locations
 - Historical data analysis and trends
 - Custom threshold configuration
+- Time-series data storage with InfluxDB
 
 ### AI-Powered Insights
 
@@ -205,10 +244,25 @@ The application supports three user roles:
 
 ### Dashboard Analytics
 
-- Interactive charts and visualizations
+- Interactive charts and visualizations using Recharts
 - Real-time data updates
 - Export capabilities
 - Customizable widgets
+- Role-based dashboard views
+
+### Company Management
+
+- Multi-tenant company support
+- Company-specific configurations
+- User management per company
+- Plan and subscription management
+
+### Alert System
+
+- Real-time alert notifications
+- Customizable alert thresholds
+- Alert history and management
+- Email and in-app notifications
 
 ## 🚀 Deployment
 
@@ -230,7 +284,16 @@ npm start
 
 ### Environment Variables
 
-Ensure all environment variables are properly configured for production deployment.
+Ensure all environment variables are properly configured for production deployment:
+
+**Required Environment Variables:**
+
+```env
+# Backend
+PORT=4040
+MONGODB_URI=your_production_mongodb_uri
+JWT_SECRET=your_secure_jwt_secret
+```
 
 ## 🤝 Contributing
 
@@ -253,6 +316,10 @@ For support and questions:
   - gadisaka04@gmail.com
   - sosinaseifuu@gmail.com
   - www.temesgen2000@gmail.com
+
+## 📝 License
+
+This project is licensed under the ISC License.
 
 ---
 

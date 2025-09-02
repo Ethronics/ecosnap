@@ -5,8 +5,8 @@ require("dotenv").config();
 const app = express();
 
 const corsOptions = {
-  origin: "*",
-  credentials: true,
+    origin: "*",
+    credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -18,10 +18,10 @@ app.use(express.json());
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    message: "Backend is running",
-    timestamp: new Date().toISOString(),
-  });
+    res.status(200).json({
+        message: "Backend is running",
+        timestamp: new Date().toISOString(),
+    });
 });
 
 app.use("/api/auth", require("./Auth/Auth"));
@@ -30,6 +30,8 @@ app.use("/api/domain", require("./routes/domain.routes.js"));
 app.use("/api/config", require("./routes/config.routes.js"));
 app.use("/api/companies", require("./routes/company.route.js"));
 app.use("/api/plans", require("./routes/plan.routes.js"));
+app.use("/api/payments", require("./routes/payment.route.js"));
+app.use("/api/alerts", require("./routes/alert.routes.js"));
 
 const connectDB = require("./config/db");
 connectDB();

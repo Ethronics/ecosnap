@@ -183,17 +183,15 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const token = localStorage.getItem("envoinsight_token");
-      const response = await axios.get(`${API_URL}/api/companies/all`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Remove authorization header since this is a public endpoint
+      const response = await axios.get(`${API_URL}/api/companies/all`);
 
       if (response.status === 200) {
+        console.log("Companies API response:", response.data);
         set({ companies: response.data.data, isLoading: false });
       }
     } catch (error: unknown) {
+      console.error("Companies API error:", error);
       const errorMessage =
         axios.isAxiosError(error) && error.response?.data?.message
           ? error.response.data.message

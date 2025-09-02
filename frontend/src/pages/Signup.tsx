@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import {
   Waves,
@@ -46,6 +47,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signup, error, signupSuccess, resetSignupSuccess } = useAuthStore();
@@ -56,6 +58,22 @@ const Signup = () => {
   }, []);
 
   const { domains, getDomains, isLoading: domainLoading } = useDomainStore();
+
+  // Helper function to get selected plan name
+  const getSelectedPlanName = () => {
+    return (
+      selectedPlan ||
+      plans
+        .find((p) => p._id === formData.selectedPlanId)
+        ?.name.toLowerCase() ||
+      "free"
+    );
+  };
+
+  // Helper function to check if selected plan is free
+  const isSelectedPlanFree = () => {
+    return getSelectedPlanName() === "free";
+  };
 
   // Fetch domains and plans from the database
   useEffect(() => {
@@ -70,6 +88,16 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!acceptTerms) {
+      toast({
+        title: "Accept Terms Required",
+        description:
+          "You must agree to the Terms of Service and Privacy Policy to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (formData.managerPassword !== formData.confirmPassword) {
       toast({
@@ -126,19 +154,28 @@ const Signup = () => {
     const result = await signup(signupData);
 
     if (result.success) {
+      const selectedPlanName = getSelectedPlanName();
+      const isFreePlan = isSelectedPlanFree();
+
+      if (isFreePlan) {
+        toast({
+          title: "Welcome to envoinsight!",
+          description:
+            "Your company and manager account have been created successfully. You can now log in to your dashboard.",
+        });
+        // Redirect to login for free plans
+        navigate("/login");
+      } else {
+        // Store the selected plan for payment after login
+        localStorage.setItem("pending_payment_plan", selectedPlanName);
       toast({
-        title: "Welcome to envoinsight!",
+          title: "Welcome to envoinsight!",
         description:
-          "Your company and manager account have been created successfully. Please complete your payment to activate your account.",
-      });
-      // Redirect to payment page with the selected plan
-      const planToUse =
-        selectedPlan ||
-        plans
-          .find((p) => p._id === formData.selectedPlanId)
-          ?.name.toLowerCase() ||
-        "free";
-      navigate(`/payment?plan=${planToUse}`);
+            "Your company and manager account have been created successfully. Please log in to complete your payment.",
+        });
+        // Redirect to login first, then user will be redirected to payment
+        navigate("/login");
+      }
     } else {
       toast({
         title: "Signup failed",
@@ -159,12 +196,12 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="glass-card p-8 rounded-3xl"
+          className="glass-card p-12 rounded-3xl"
         >
           <Link
             to="/"
@@ -184,7 +221,7 @@ const Signup = () => {
                 envoinsight
               </span>
             </Link>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-4xl font-bold text-foreground">
               Join envoinsight
             </h1>
             <p className="text-foreground/70 mt-2">
@@ -195,7 +232,7 @@ const Signup = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Company Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+              <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                 Company Information
               </h3>
 
@@ -209,7 +246,7 @@ const Signup = () => {
                     placeholder="Enter your company name"
                     value={formData.companyName}
                     onChange={handleInputChange("companyName")}
-                    className="pl-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                 </div>
@@ -223,7 +260,9 @@ const Signup = () => {
                     id="domainId"
                     value={formData.domainId}
                     onChange={handleInputChange("domainId")}
-                    className="w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent appearance-none"
+                    aria-label="Select domain"
+                    title="Select domain"
+                    className="w-full pl-10 pr-10 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent appearance-none text-base"
                     required
                     disabled={domainLoading}
                   >
@@ -256,7 +295,7 @@ const Signup = () => {
             {/* Plan Selection or Display */}
             {selectedPlan ? (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                   Selected Plan
                 </h3>
                 {plansLoading ? (
@@ -311,7 +350,7 @@ const Signup = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                   Choose Your Plan
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -341,6 +380,8 @@ const Signup = () => {
                       return (
                         <div
                           key={plan._id}
+
+                    
                           className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             formData.selectedPlanId === plan._id
                               ? "border-primary bg-primary/10"
@@ -386,7 +427,7 @@ const Signup = () => {
 
             {/* Manager Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+              <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                 Manager Details
               </h3>
 
@@ -400,7 +441,7 @@ const Signup = () => {
                     placeholder="Enter manager's full name"
                     value={formData.managerName}
                     onChange={handleInputChange("managerName")}
-                    className="pl-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                 </div>
@@ -416,7 +457,7 @@ const Signup = () => {
                     placeholder="Enter manager's email"
                     value={formData.managerEmail}
                     onChange={handleInputChange("managerEmail")}
-                    className="pl-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                 </div>
@@ -432,7 +473,7 @@ const Signup = () => {
                     placeholder="Create a password for manager"
                     value={formData.managerPassword}
                     onChange={handleInputChange("managerPassword")}
-                    className="pl-10 pr-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 pr-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                   <button
@@ -459,7 +500,7 @@ const Signup = () => {
                     placeholder="Confirm manager's password"
                     value={formData.confirmPassword}
                     onChange={handleInputChange("confirmPassword")}
-                    className="pl-10 pr-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 pr-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                   <button
@@ -477,13 +518,50 @@ const Signup = () => {
               </div>
             </div>
 
+            {/* Terms of Service & Privacy Policy */}
+            <div className="space-y-2">
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="acceptTerms"
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(Boolean(checked))}
+                />
+                <Label htmlFor="acceptTerms" className="text-foreground/80">
+                  I agree to the {" "}
+                  <Link to="/terms-of-service" className="text-primary hover:text-accent">
+                    Terms of Service
+                  </Link>{" "}
+                  and {" "}
+                  <Link to="/privacy-policy" className="text-primary hover:text-accent">
+                    Privacy Policy
+                  </Link>
+                  .
+                </Label>
+              </div>
+            </div>
+
             <Button
               type="submit"
-              className="w-full bg-primary/80 hover:bg-primary text-white backdrop-blur-sm py-6 text-lg"
+              className="w-full bg-primary/80 hover:bg-primary text-white backdrop-blur-sm py-7 text-xl"
               disabled={isLoading || domainLoading}
             >
-              {isLoading ? "Creating company..." : "Create Company & Manager"}
+              {isLoading
+                ? "Creating company..."
+                : isSelectedPlanFree()
+                ? "Create Company & Manager"
+                : "Create Company & Continue to Payment"}
             </Button>
+
+            {/* Plan-specific information */}
+            {!isLoading && (
+              <div className="text-center mt-4">
+                <p className="text-sm text-foreground/60">
+                  {isSelectedPlanFree()
+                    ? "Free plan: Your account will be activated immediately after signup."
+                    : "Paid plan: You'll be redirected to login, then to payment after signup."}
+                </p>
+              </div>
+            )}
           </form>
 
           <div className="text-center mt-6">

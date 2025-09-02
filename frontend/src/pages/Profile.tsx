@@ -12,7 +12,7 @@ import useAuthStore from "@/stores/authStore";
 import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateProfile } = useAuthStore();
   const navigate = useNavigate();
   const [username, setUsername] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
@@ -29,12 +29,44 @@ export default function Profile() {
     }
   }, [user]);
 
-  const handleSaveProfile = () => {
-    // Simulate saving profile
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
-    });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  const handleSaveProfile = async () => {
+    if (!username.trim() || !email.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Username and email are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+    const result = await updateProfile({ name: username, email });
+    setIsUpdatingProfile(false);
+
+    if (result.success) {
+      toast({
+        title: "Profile Updated",
+        description: result.message,
+      });
+    } else {
+      toast({
+        title: "Update Failed",
+        description: result.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleChangePassword = () => {
@@ -187,10 +219,11 @@ export default function Profile() {
                 </div>
                 <Button
                   onClick={handleSaveProfile}
+                  disabled={isUpdatingProfile}
                   className="bg-primary/80 hover:bg-primary"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                  {isUpdatingProfile ? "Saving..." : "Save Changes"}
                 </Button>
               </CardContent>
             </Card>
