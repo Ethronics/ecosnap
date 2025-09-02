@@ -111,12 +111,29 @@ export const Payment = () => {
     return `TXN_${timestamp}_${random}`.toUpperCase();
   };
 
+  // Ethiopian mobile phone validation
+  const normalizePhoneNumber = (value: string) => value.replace(/\s|-/g, "");
+  const isValidEthiopianMobile = (value: string) => {
+    const v = normalizePhoneNumber(value);
+    // Accept: +2519XXXXXXXX, 2519XXXXXXXX, 09XXXXXXXX
+    return /^(?:\+251|251|0)9\d{8}$/.test(v);
+  };
+
   const validatePaymentForm = () => {
     if (paymentMethod === "mobile_money") {
       if (!phoneNumber.trim()) {
         toast({
           title: "Validation Error",
           description: "Please enter your phone number.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      if (!isValidEthiopianMobile(phoneNumber)) {
+        toast({
+          title: "Invalid Phone Number",
+          description:
+            "Enter a valid Ethiopian mobile number, e.g., +2519XXXXXXXX or 09XXXXXXXX.",
           variant: "destructive",
         });
         return false;

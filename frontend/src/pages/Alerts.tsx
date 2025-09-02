@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import UserSelectionModal from "@/components/UserSelectionModal";
 import useAuthStore from "@/stores/authStore";
 import { useCompanyStore } from "@/stores/companyStore";
 import { useToast } from "@/hooks/use-toast";
+import { useAlertStore, type BackendAlert } from "@/stores/alertStore";
 import {
   Bell,
   AlertTriangle,
@@ -18,63 +19,51 @@ import {
   Settings,
 } from "lucide-react";
 
-interface Alert {
-  id: string;
-  title: string;
-  description: string;
-  severity: "low" | "medium" | "high" | "critical";
-  domain: string;
-  timestamp: string;
-  status: "active" | "notified" | "fixed";
-  type: "temperature" | "humidity" | "air_quality" | "system" | "security";
-}
-
 const Alerts = () => {
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: "1",
-      title: "High Temperature Alert",
-      description: "Temperature has exceeded 30°C in the main office area",
-      severity: "high",
-      domain: "Office",
-      timestamp: "2025-01-15T10:30:00Z",
-      status: "active",
-      type: "temperature",
-    },
-    {
-      id: "2",
-      title: "Low Humidity Warning",
-      description: "Humidity levels have dropped below 30% in the server room",
-      severity: "medium",
-      domain: "Office",
-      timestamp: "2025-01-15T09:15:00Z",
-      status: "notified",
-      type: "humidity",
-    },
-    {
-      id: "3",
-      title: "Air Quality Alert",
-      description: "CO2 levels are elevated in the conference room",
-      severity: "critical",
-      domain: "Office",
-      timestamp: "2025-01-15T08:45:00Z",
-      status: "active",
-      type: "air_quality",
-    },
-  ]);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<BackendAlert | null>(null);
 
   const { user } = useAuthStore();
   const {
     company,
     isLoading: companyLoading,
     getCompanyByManagerId,
+    getCompanyByEmployeeId,
   } = useCompanyStore();
   const { toast } = useToast();
+  const {
+    alerts,
+    isLoading: alertsLoading,
+    error: alertsError,
+    getCompanyAlerts,
+    acknowledgeAlert,
+    resolveAlert,
+    clearError,
+  } = useAlertStore();
 
-  const getSeverityColor = (severity: Alert["severity"]) => {
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === "manager" && user.id) {
+      getCompanyByManagerId(user.id);
+    } else if ((user.role === "employee" || user.role === "staff") && user.id) {
+      getCompanyByEmployeeId(user.id);
+    }
+  }, [user, getCompanyByManagerId, getCompanyByEmployeeId]);
+
+  useEffect(() => {
+    if (company?._id) {
+      getCompanyAlerts(company._id);
+    }
+  }, [company?._id, getCompanyAlerts]);
+
+  useEffect(() => {
+    if (alertsError) {
+      toast({ title: "Alerts Error", description: alertsError, variant: "destructive" });
+      clearError();
+    }
+  }, [alertsError, toast, clearError]);
+
+  const getSeverityColor = (severity: BackendAlert["severity"]) => {
     switch (severity) {
       case "low":
         return "text-blue-400 border-blue-400/30 bg-blue-400/10";
@@ -89,21 +78,21 @@ const Alerts = () => {
     }
   };
 
-  const getStatusColor = (status: Alert["status"]) => {
+  const getStatusColor = (status: BackendAlert["status"]) => {
     switch (status) {
-      case "active":
+      case "new":
         return "text-red-400 border-red-400/30 bg-red-400/10";
-      case "notified":
+      case "acknowledged":
         return "text-yellow-400 border-yellow-400/30 bg-yellow-400/10";
-      case "fixed":
+      case "resolved":
         return "text-green-400 border-green-400/30 bg-green-400/10";
       default:
         return "text-gray-400 border-gray-400/30 bg-gray-400/10";
     }
   };
 
-  const getTypeIcon = (type: Alert["type"]) => {
-    switch (type) {
+  const getTypeIcon = (metric: string | undefined) => {
+    switch (metric) {
       case "temperature":
         return "🌡️";
       case "humidity":
@@ -119,37 +108,29 @@ const Alerts = () => {
     }
   };
 
-  const handleNotify = (alert: Alert) => {
+  const handleNotify = (alert: BackendAlert) => {
     setSelectedAlert(alert);
     setIsModalOpen(true);
   };
 
-  const handleNotifyUsers = (selectedUserIds: string[]) => {
+  const handleNotifyUsers = async (selectedUserIds: string[]) => {
     if (!selectedAlert) return;
-
-    setAlerts((prev) =>
-      prev.map((alert) =>
-        alert.id === selectedAlert.id
-          ? { ...alert, status: "notified" as const }
-          : alert
-      )
-    );
-
-    toast({
-      title: "Notifications Sent",
-      description: `Alert "${selectedAlert.title}" has been sent to ${
-        selectedUserIds.length
-      } user${selectedUserIds.length !== 1 ? "s" : ""}.`,
-    });
+    const ok = await acknowledgeAlert(selectedAlert._id);
+    if (ok) {
+      toast({
+        title: "Notifications Sent",
+        description: `Alert has been acknowledged and sent to ${selectedUserIds.length} user${
+          selectedUserIds.length !== 1 ? "s" : ""
+        }.`,
+      });
+    }
   };
 
-  const handleFixed = (alertId: string) => {
-    setAlerts((prev) =>
-      prev.map((alert) =>
-        alert.id === alertId ? { ...alert, status: "fixed" as const } : alert
-      )
-    );
+  const handleFixed = async (alertId: string) => {
+    await resolveAlert(alertId);
   };
+
+  const isLoading = useMemo(() => companyLoading || alertsLoading, [companyLoading, alertsLoading]);
 
   return (
     <div className="min-h-screen ">
@@ -173,93 +154,98 @@ const Alerts = () => {
           </motion.div>
 
           {/* Alerts Grid */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="grid gap-6"
-          >
-            {alerts.map((alert, index) => (
-              <motion.div
-                key={alert.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 + index * 0.1 }}
-              >
-                <Card className="glass-card p-6 border-l-4 border-l-red-400">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <span className="text-2xl">
-                          {getTypeIcon(alert.type)}
-                        </span>
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground">
-                            {alert.title}
-                          </h3>
-                          <p className="text-foreground/70">
-                            {alert.description}
-                          </p>
+          {isLoading ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="grid gap-6"
+            >
+              <Card className="glass-card p-6">
+                <div className="flex items-center justify-center py-8 text-foreground/70">
+                  Loading alerts...
+                </div>
+              </Card>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="grid gap-6"
+            >
+              {alerts.map((alert, index) => (
+                <motion.div
+                  key={alert._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 + index * 0.1 }}
+                >
+                  <Card className="glass-card p-6 border-l-4 border-l-red-400">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <span className="text-2xl">{getTypeIcon(alert.metric)}</span>
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground">
+                              {alert.message}
+                            </h3>
+                            <p className="text-foreground/70">
+                              {alert.metric ? `${alert.metric}` : "Alert"}
+                              {typeof alert.value === "number" ? ` • value: ${alert.value}` : ""}
+                              {typeof alert.threshold === "number" ? ` • threshold: ${alert.threshold}` : ""}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-4 mb-4">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-semibold border ${getSeverityColor(alert.severity)}`}
+                          >
+                            {alert.severity.toUpperCase()}
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(alert.status)}`}
+                          >
+                            {alert.status.toUpperCase()}
+                          </span>
+                          <span className="text-sm text-foreground/60">
+                            {new Date(alert.sent_at).toLocaleString()}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-4 mb-4">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold border ${getSeverityColor(
-                            alert.severity
-                          )}`}
+                      <div className="flex space-x-2 ml-4">
+                        <Button
+                          onClick={() => handleNotify(alert)}
+                          disabled={alert.status !== "new"}
+                          variant="outline"
+                          size="sm"
+                          className="glass-card border-blue-400/30 text-blue-400 hover:bg-blue-400/10"
                         >
-                          {alert.severity.toUpperCase()}
-                        </span>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
-                            alert.status
-                          )}`}
+                          <Users className="h-4 w-4 mr-2" />
+                          Notify
+                        </Button>
+                        <Button
+                          onClick={() => handleFixed(alert._id)}
+                          disabled={alert.status === "resolved"}
+                          variant="outline"
+                          size="sm"
+                          className="glass-card border-green-400/30 text-green-400 hover:bg-green-400/10"
                         >
-                          {alert.status.toUpperCase()}
-                        </span>
-                        <span className="text-sm text-foreground/60">
-                          {alert.domain}
-                        </span>
-                        <span className="text-sm text-foreground/60">
-                          {new Date(alert.timestamp).toLocaleString()}
-                        </span>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Fixed
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex space-x-2 ml-4">
-                      <Button
-                        onClick={() => handleNotify(alert)}
-                        disabled={
-                          alert.status === "notified" ||
-                          alert.status === "fixed"
-                        }
-                        variant="outline"
-                        size="sm"
-                        className="glass-card border-blue-400/30 text-blue-400 hover:bg-blue-400/10"
-                      >
-                        <Users className="h-4 w-4 mr-2" />
-                        Notify
-                      </Button>
-                      <Button
-                        onClick={() => handleFixed(alert.id)}
-                        disabled={alert.status === "fixed"}
-                        variant="outline"
-                        size="sm"
-                        className="glass-card border-green-400/30 text-green-400 hover:bg-green-400/10"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Fixed
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
 
           {/* Empty State */}
-          {alerts.length === 0 && (
+          {!isLoading && alerts.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -285,7 +271,7 @@ const Alerts = () => {
           setIsModalOpen(false);
           setSelectedAlert(null);
         }}
-        alertTitle={selectedAlert?.title || ""}
+        alertTitle={selectedAlert?.message || ""}
         onNotifyUsers={handleNotifyUsers}
       />
     </div>

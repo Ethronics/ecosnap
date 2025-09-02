@@ -61,7 +61,8 @@ interface User {
 }
 
 export default function UsersManagement() {
-  const { createUser, isLoading } = useUserStore();
+  const { createUser, isLoading, error: userError } = useUserStore();
+
   const { company, getCompanyByManagerId } = useCompanyStore();
   const { user } = useAuthStore();
   const { toast } = useToast();
@@ -84,6 +85,13 @@ export default function UsersManagement() {
       getCompanyByManagerId(user.id);
     }
   }, [user?.id, getCompanyByManagerId]);
+
+  // Surface backend errors from store
+  useEffect(() => {
+    if (userError) {
+      toast({ title: "User Error", description: userError, variant: "destructive" });
+    }
+  }, [userError, toast]);
 
   // Filter users to show only those from the manager's company
   const companyUsers = company?.employees || [];
@@ -121,6 +129,17 @@ export default function UsersManagement() {
       return;
     }
 
+    // basic client-side validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newUser.email)) {
+      toast({ title: "Invalid Email", description: "Please enter a valid email address.", variant: "destructive" });
+      return;
+    }
+    if (newUser.password.length < 6) {
+      toast({ title: "Weak Password", description: "Password must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
+
     setIsCreating(true);
     try {
       const success = await createUser(newUser);
@@ -139,14 +158,14 @@ export default function UsersManagement() {
       } else {
         toast({
           title: "Error",
-          description: "Failed to create user. Please try again.",
+          description: userError || "Failed to create user. Please try again.",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: userError || "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
