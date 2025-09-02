@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,16 +7,7 @@ import UserSelectionModal from "@/components/UserSelectionModal";
 import useAuthStore from "@/stores/authStore";
 import { useCompanyStore } from "@/stores/companyStore";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Bell,
-  AlertTriangle,
-  CheckCircle,
-  Users,
-  UserCheck,
-  UserX,
-  Eye,
-  Settings,
-} from "lucide-react";
+import { Bell, CheckCircle, Users } from "lucide-react";
 
 interface Alert {
   id: string;
@@ -30,49 +21,50 @@ interface Alert {
 }
 
 const Alerts = () => {
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: "1",
-      title: "High Temperature Alert",
-      description: "Temperature has exceeded 30°C in the main office area",
-      severity: "high",
-      domain: "Office",
-      timestamp: "2025-01-15T10:30:00Z",
-      status: "active",
-      type: "temperature",
-    },
-    {
-      id: "2",
-      title: "Low Humidity Warning",
-      description: "Humidity levels have dropped below 30% in the server room",
-      severity: "medium",
-      domain: "Office",
-      timestamp: "2025-01-15T09:15:00Z",
-      status: "notified",
-      type: "humidity",
-    },
-    {
-      id: "3",
-      title: "Air Quality Alert",
-      description: "CO2 levels are elevated in the conference room",
-      severity: "critical",
-      domain: "Office",
-      timestamp: "2025-01-15T08:45:00Z",
-      status: "active",
-      type: "air_quality",
-    },
-  ]);
-
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
 
   const { user } = useAuthStore();
-  const {
-    company,
-    isLoading: companyLoading,
-    getCompanyByManagerId,
-  } = useCompanyStore();
   const { toast } = useToast();
+
+  // Auto-generate alerts for demo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newAlert: Alert = {
+        id: crypto.randomUUID(),
+        title: "Random Temperature Alert",
+        description: "Temperature exceeded safe levels in the storage room",
+        severity: ["low", "medium", "high", "critical"][
+          Math.floor(Math.random() * 4)
+        ] as Alert["severity"],
+        domain: "Office",
+        timestamp: new Date().toISOString(),
+        status: "active",
+        type: ["temperature", "humidity", "air_quality", "system", "security"][
+          Math.floor(Math.random() * 5)
+        ] as Alert["type"],
+      };
+
+      setAlerts((prev) => [newAlert, ...prev]);
+    }, 15000); // every 15 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Example for fetching from backend instead
+  /*
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      const res = await fetch("/api/alerts");
+      const data = await res.json();
+      setAlerts(data);
+    };
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 10000);
+    return () => clearInterval(interval);
+  }, []);
+  */
 
   const getSeverityColor = (severity: Alert["severity"]) => {
     switch (severity) {
@@ -124,35 +116,70 @@ const Alerts = () => {
     setIsModalOpen(true);
   };
 
-  const handleNotifyUsers = (selectedUserIds: string[]) => {
+  const handleNotifyUsers = async (selectedUserIds: string[]) => {
     if (!selectedAlert) return;
 
-    setAlerts((prev) =>
-      prev.map((alert) =>
-        alert.id === selectedAlert.id
-          ? { ...alert, status: "notified" as const }
-          : alert
-      )
-    );
+    // Send email request to backend
+    try {
+      await fetch("/api/send-alert-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          alertId: selectedAlert.id,
+          userIds: selectedUserIds,
+        }),
+      });
 
-    toast({
-      title: "Notifications Sent",
-      description: `Alert "${selectedAlert.title}" has been sent to ${
-        selectedUserIds.length
-      } user${selectedUserIds.length !== 1 ? "s" : ""}.`,
-    });
+      // Update alert status locally
+      setAlerts((prev) =>
+        prev.map((alert) =>
+          alert.id === selectedAlert.id
+            ? { ...alert, status: "notified" }
+            : alert
+        )
+      );
+
+      toast({
+        title: "Notifications Sent",
+        description: `Alert "${selectedAlert.title}" sent to ${selectedUserIds.length} user${
+          selectedUserIds.length !== 1 ? "s" : ""
+        }.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send email notifications.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleFixed = (alertId: string) => {
-    setAlerts((prev) =>
-      prev.map((alert) =>
-        alert.id === alertId ? { ...alert, status: "fixed" as const } : alert
-      )
-    );
+  const handleFixed = async (alertId: string) => {
+    // Update status in backend
+    try {
+      await fetch(`/api/alerts/${alertId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "fixed" }),
+      });
+
+      // Update locally
+      setAlerts((prev) =>
+        prev.map((alert) =>
+          alert.id === alertId ? { ...alert, status: "fixed" } : alert
+        )
+      );
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update alert status.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <RoleNavigation />
       <div className="pt-32 px-4 pb-8">
         <div className="max-w-6xl mx-auto space-y-8">
