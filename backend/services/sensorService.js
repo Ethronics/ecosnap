@@ -7,9 +7,9 @@ class SensorService {
       temperature: "N/A",
       humidity: "N/A",
       lastUpdated: "N/A",
-      domain: "default"
+      domain: "default",
     };
-    
+
     this.wss = null;
     this.mqttClient = null;
     this.isConnected = false;
@@ -18,16 +18,16 @@ class SensorService {
   // Initialize WebSocket server
   initializeWebSocket(server) {
     this.wss = new WebSocket.Server({ server });
-    
+
     this.wss.on("connection", (ws) => {
       console.log("Client connected via WebSocket");
       // Send current data to new client
       ws.send(JSON.stringify(this.sensorData));
-      
+
       ws.on("error", (err) => {
         console.error("WebSocket client error:", err);
       });
-      
+
       ws.on("close", () => {
         console.log("WebSocket client disconnected");
       });
@@ -43,11 +43,11 @@ class SensorService {
   // Connect to MQTT broker
   connectToMQTT() {
     const mqttOptions = {
-      host: process.env.MQTT_HOST || "8b0ebbaf2e3a40928b4b20eb1449c114.s1.eu.hivemq.cloud",
-      port: process.env.MQTT_PORT || 8883,
-      protocol: process.env.MQTT_PROTOCOL || "mqtts",
-      username: process.env.MQTT_USERNAME || "solomon",
-      password: process.env.MQTT_PASSWORD || "Sol@0902305468",
+      host: process.env.MQTT_HOST,
+      port: process.env.MQTT_PORT,
+      protocol: process.env.MQTT_PROTOCOL,
+      username: process.env.MQTT_USERNAME,
+      password: process.env.MQTT_PASSWORD,
       clientId: `EnvoInsight_Client_${Math.random().toString(16).slice(3)}`,
       reconnectPeriod: 1000,
     };
@@ -57,11 +57,11 @@ class SensorService {
     this.mqttClient.on("connect", () => {
       console.log("✅ Connected to HiveMQ Cloud");
       this.isConnected = true;
-      
+
       // Subscribe to sensor topics
       const tempTopic = process.env.MQTT_TEMP_TOPIC || "dht11/temperature";
       const humTopic = process.env.MQTT_HUM_TOPIC || "dht11/humidity";
-      
+
       this.mqttClient.subscribe([tempTopic, humTopic], { qos: 0 }, (err) => {
         if (!err) {
           console.log(`📡 Subscribed to ${tempTopic} and ${humTopic}`);
@@ -74,7 +74,7 @@ class SensorService {
     this.mqttClient.on("message", (topic, message) => {
       const payload = message.toString();
       console.log(`📨 Received ${payload} from ${topic}`);
-      
+
       try {
         const now = new Date().toLocaleString();
         if (topic.includes("temperature")) {
@@ -86,10 +86,9 @@ class SensorService {
 
         // Broadcast to all WebSocket clients
         this.broadcastSensorData();
-        
+
         // Store in database (you can add this later)
         this.storeSensorData();
-        
       } catch (err) {
         console.error("❌ Error processing MQTT message:", err);
       }
@@ -137,7 +136,7 @@ class SensorService {
   getConnectionStatus() {
     return {
       mqtt: this.isConnected,
-      websocket: this.wss ? this.wss.clients.size : 0
+      websocket: this.wss ? this.wss.clients.size : 0,
     };
   }
 
