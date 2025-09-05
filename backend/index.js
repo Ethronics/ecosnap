@@ -31,7 +31,11 @@ app.use("/api/config", require("./routes/config.routes.js"));
 app.use("/api/companies", require("./routes/company.route.js"));
 app.use("/api/plans", require("./routes/plan.routes.js"));
 app.use("/api/payments", require("./routes/payment.route.js"));
+
+app.use("/api/predict", require("./routes/predict.routes.js"));
+
 app.use("/api/alerts", require("./routes/alert.routes.js"));
+ 
 
 const connectDB = require("./config/db");
 connectDB();

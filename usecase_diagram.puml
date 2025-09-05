@@ -1,0 +1,99 @@
+@startuml EnvoSnap Use Case Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam usecase {
+    BackgroundColor #E8F4FD
+    BorderColor #2E86AB
+    FontColor #1A365D
+}
+skinparam actor {
+    BackgroundColor #F7FAFC
+    BorderColor #4A5568
+    FontColor #2D3748
+}
+skinparam package {
+    BackgroundColor #F7FAFC
+    BorderColor #CBD5E0
+}
+
+title EnvoSnap - Environmental Monitoring Use Cases
+
+top to bottom direction
+
+actor "Admin" as Admin
+actor "Manager" as Manager
+
+actor "Staff" as Staff
+actor "Employee" as Employee
+
+package "Authentication & User Management" {
+    usecase "Login" as UC1
+    usecase "Signup" as UC2
+    usecase "Manage Users" as UC3
+    usecase "Manage Companies" as UC4
+}
+
+package "Environmental Monitoring" {
+    usecase "View Dashboard" as UC5
+    usecase "View Historical Data" as UC6
+    usecase "View Predictions" as UC7
+    usecase "Configure Domains" as UC8
+    usecase "Set Thresholds" as UC9
+}
+
+package "Company Management" {
+    usecase "Manage Employees" as UC10
+    usecase "View Company Settings" as UC11
+    usecase "Manage Subscriptions" as UC12
+}
+
+package "System Administration" {
+    usecase "View Payments" as UC13
+    usecase "System Configuration" as UC14
+}
+
+' Admin relationships
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC14
+
+' Manager relationships
+Manager --> UC1
+Manager --> UC2
+Manager --> UC5
+Manager --> UC6
+Manager --> UC7
+Manager --> UC8
+Manager --> UC9
+Manager --> UC10
+Manager --> UC11
+Manager --> UC12
+
+' Staff relationships
+Staff --> UC1
+Staff --> UC2
+Staff --> UC5
+Staff --> UC6
+Staff --> UC7
+Staff --> UC8
+Staff --> UC9
+
+' Employee relationships
+Employee --> UC1
+Employee --> UC2
+Employee --> UC5
+Employee --> UC6
+Employee --> UC7
+
+@enduml

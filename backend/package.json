@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "init-plans": "node initialize-plans.js"
+    "init-plans": "node initialize-plans.js",
+    "seed:history": "node seed/history.seed.js"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +15,8 @@
   "description": "",
   "dependencies": {
     "@influxdata/influxdb-client": "^1.35.0",
+    "@tensorflow/tfjs-node": "^4.22.0",
+    "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
