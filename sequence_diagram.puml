@@ -1,0 +1,62 @@
+@startuml EnvoSnap Sequence Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title EnvoSnap - Environmental Monitoring Sequence
+
+actor Admin
+actor Manager
+actor Staff
+actor Employee
+participant "Frontend\n(React)" as FE
+participant "Backend API\n(Express)" as BE
+participant "Database\n(MongoDB)" as DB
+participant "AI Model\n(External)" as AI
+
+== User Authentication ==
+Admin -> FE: Login with credentials
+Manager -> FE: Login with credentials
+Staff -> FE: Login with credentials
+Employee -> FE: Login with credentials
+FE -> BE: POST /api/auth/login
+BE -> DB: Validate user credentials
+DB --> BE: User data
+BE --> FE: JWT token + user info
+FE --> User: Redirect to dashboard
+
+== Environmental Data Monitoring ==
+Manager -> FE: View insights dashboard
+Staff -> FE: View insights dashboard
+FE -> BE: GET /api/domain/history
+BE -> DB: Query historical data
+DB --> BE: Temperature/humidity data
+BE --> FE: Historical data
+FE -> BE: POST /api/predict/temperature
+BE -> DB: Get last 24h data
+DB --> BE: Recent data points
+BE -> AI: Send data for prediction
+AI --> BE: Predicted temperature
+BE --> FE: Prediction result
+
+
+== Domain Management ==
+Admin -> FE: Create new domain
+
+FE -> BE: POST /api/domain/create
+BE -> DB: Save domain configuration
+DB --> BE: Domain created
+BE --> FE: Success response
+
+== Company Management ==
+Admin -> FE: Manage company settings
+Manager -> FE: Manage company settings
+
+FE -> BE: GET /api/companies
+BE -> DB: Query company data
+DB --> BE: Company information
+BE --> FE: Company data
+
+@enduml
