@@ -196,12 +196,12 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="glass-card p-8 rounded-3xl"
+          className="glass-card p-12 rounded-3xl"
         >
           <Link
             to="/"
@@ -221,7 +221,7 @@ const Signup = () => {
                 envoinsight
               </span>
             </Link>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-4xl font-bold text-foreground">
               Join envoinsight
             </h1>
             <p className="text-foreground/70 mt-2">
@@ -232,7 +232,7 @@ const Signup = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Company Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+              <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                 Company Information
               </h3>
 
@@ -246,7 +246,7 @@ const Signup = () => {
                     placeholder="Enter your company name"
                     value={formData.companyName}
                     onChange={handleInputChange("companyName")}
-                    className="pl-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                 </div>
@@ -262,7 +262,7 @@ const Signup = () => {
                     onChange={handleInputChange("domainId")}
                     aria-label="Select domain"
                     title="Select domain"
-                    className="w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent appearance-none"
+                    className="w-full pl-10 pr-10 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent appearance-none text-base"
                     required
                     disabled={domainLoading}
                   >
@@ -295,7 +295,7 @@ const Signup = () => {
             {/* Plan Selection or Display */}
             {selectedPlan ? (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                   Selected Plan
                 </h3>
                 {plansLoading ? (
@@ -350,7 +350,7 @@ const Signup = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+                <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                   Choose Your Plan
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -380,6 +380,8 @@ const Signup = () => {
                       return (
                         <div
                           key={plan._id}
+
+                    
                           className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             formData.selectedPlanId === plan._id
                               ? "border-primary bg-primary/10"
@@ -425,7 +427,7 @@ const Signup = () => {
 
             {/* Manager Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground border-b border-white/20 pb-2">
+              <h3 className="text-xl font-semibold text-foreground border-b border-white/20 pb-2">
                 Manager Details
               </h3>
 
@@ -439,7 +441,7 @@ const Signup = () => {
                     placeholder="Enter manager's full name"
                     value={formData.managerName}
                     onChange={handleInputChange("managerName")}
-                    className="pl-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                 </div>
@@ -455,7 +457,7 @@ const Signup = () => {
                     placeholder="Enter manager's email"
                     value={formData.managerEmail}
                     onChange={handleInputChange("managerEmail")}
-                    className="pl-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                 </div>
@@ -471,7 +473,7 @@ const Signup = () => {
                     placeholder="Create a password for manager"
                     value={formData.managerPassword}
                     onChange={handleInputChange("managerPassword")}
-                    className="pl-10 pr-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 pr-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                   <button
@@ -498,7 +500,7 @@ const Signup = () => {
                     placeholder="Confirm manager's password"
                     value={formData.confirmPassword}
                     onChange={handleInputChange("confirmPassword")}
-                    className="pl-10 pr-10 glass-card border-white/20 text-foreground"
+                    className="pl-10 pr-10 glass-card border-white/20 text-foreground py-4 text-base"
                     required
                   />
                   <button
@@ -540,7 +542,7 @@ const Signup = () => {
 
             <Button
               type="submit"
-              className="w-full bg-primary/80 hover:bg-primary text-white backdrop-blur-sm py-6 text-lg"
+              className="w-full bg-primary/80 hover:bg-primary text-white backdrop-blur-sm py-7 text-xl"
               disabled={isLoading || domainLoading}
             >
               {isLoading
