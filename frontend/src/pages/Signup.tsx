@@ -159,7 +159,7 @@ const Signup = () => {
 
       if (isFreePlan) {
         toast({
-          title: "Welcome to envoinsight!",
+          title: "Welcome to Envoinsight!",
           description:
             "Your company and manager account have been created successfully. You can now log in to your dashboard.",
         });
@@ -168,9 +168,9 @@ const Signup = () => {
       } else {
         // Store the selected plan for payment after login
         localStorage.setItem("pending_payment_plan", selectedPlanName);
-      toast({
-          title: "Welcome to envoinsight!",
-        description:
+        toast({
+          title: "Welcome to Envoinsight!",
+          description:
             "Your company and manager account have been created successfully. Please log in to complete your payment.",
         });
         // Redirect to login first, then user will be redirected to payment
@@ -218,11 +218,11 @@ const Signup = () => {
             >
               <Waves className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                envoinsight
+                Envoinsight
               </span>
             </Link>
             <h1 className="text-4xl font-bold text-foreground">
-              Join envoinsight
+              Join Envoinsight
             </h1>
             <p className="text-foreground/70 mt-2">
               Create your company and manager account
@@ -380,8 +380,6 @@ const Signup = () => {
                       return (
                         <div
                           key={plan._id}
-
-                    
                           className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             formData.selectedPlanId === plan._id
                               ? "border-primary bg-primary/10"
@@ -524,15 +522,23 @@ const Signup = () => {
                 <Checkbox
                   id="acceptTerms"
                   checked={acceptTerms}
-                  onCheckedChange={(checked) => setAcceptTerms(Boolean(checked))}
+                  onCheckedChange={(checked) =>
+                    setAcceptTerms(Boolean(checked))
+                  }
                 />
                 <Label htmlFor="acceptTerms" className="text-foreground/80">
-                  I agree to the {" "}
-                  <Link to="/terms-of-service" className="text-primary hover:text-accent">
+                  I agree to the{" "}
+                  <Link
+                    to="/terms-of-service"
+                    className="text-primary hover:text-accent"
+                  >
                     Terms of Service
                   </Link>{" "}
-                  and {" "}
-                  <Link to="/privacy-policy" className="text-primary hover:text-accent">
+                  and{" "}
+                  <Link
+                    to="/privacy-policy"
+                    className="text-primary hover:text-accent"
+                  >
                     Privacy Policy
                   </Link>
                   .

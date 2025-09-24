@@ -113,7 +113,7 @@ export const RoleNavigation = () => {
             <div className="flex items-center space-x-2">
               <Waves className="h-8 w-8 text-primary" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Envoinsight Ai
+                Envoinsight AI
               </span>
             </div>
 

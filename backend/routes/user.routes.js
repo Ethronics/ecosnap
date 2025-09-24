@@ -8,7 +8,7 @@ const authAndRoleMiddleware = require("../middleware/authAndRoleMiddleware.js");
 router.get("/all", userControllers.getAllUsers);
 
 // Create new user
-router.post("/create", userControllers.createUser);
+router.post("/create", authMiddleware, userControllers.createUser);
 
 // Get user by ID
 router.get("/:id", userControllers.getUserById);
@@ -21,9 +21,9 @@ router.delete("/:id", userControllers.deleteUser);
 
 // Clear all users (admin only)
 router.delete(
-    "/clear",
-    //   authAndRoleMiddleware("admin"),
-    userControllers.clearAllUsers
+  "/clear",
+  //   authAndRoleMiddleware("admin"),
+  userControllers.clearAllUsers
 );
 
 module.exports = router;
